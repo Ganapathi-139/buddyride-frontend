@@ -1,0 +1,1774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BuddyRide</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{
+  --bg:#080c14;
+  --surface:#0f1420;
+  --card:#141b28;
+  --card2:#1a2235;
+  --border:#1e2d45;
+  --border2:#243352;
+  --accent:#f5a623;
+  --accent-dim:rgba(245,166,35,.12);
+  --accent2:#ff6b6b;
+  --green:#00d68f;
+  --green-dim:rgba(0,214,143,.1);
+  --blue:#4e9eff;
+  --blue-dim:rgba(78,158,255,.1);
+  --purple:#a78bfa;
+  --text:#e8edf5;
+  --text2:#9ba8bb;
+  --text3:#5c6b80;
+  --radius:14px;
+  --radius-lg:20px;
+  --shadow:0 4px 24px rgba(0,0,0,.4);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;background-image:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(245,166,35,.06),transparent);}
+::selection{background:rgba(245,166,35,.3);}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+.app{display:flex;flex-direction:column;min-height:100vh;}
+nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 24px;
+  background:rgba(8,12,20,.92);
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:300;
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+}
+.logo{
+  font-family:'Syne',sans-serif;font-size:1.35rem;font-weight:800;
+  color:var(--accent);display:flex;align-items:center;gap:8px;flex-shrink:0;
+  letter-spacing:-.5px;
+}
+.logo span{color:var(--text);}
+.logo-icon{
+  width:30px;height:30px;border-radius:8px;
+  background:linear-gradient(135deg,var(--accent),#e8860f);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.9rem;
+}
+.nav-tabs{
+  display:flex;gap:1px;
+  overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;
+  flex:1;margin:0 16px;
+  background:var(--surface);
+  border-radius:10px;
+  padding:3px;
+  border:1px solid var(--border);
+}
+.nav-tabs::-webkit-scrollbar{display:none;}
+.nav-tab{
+  padding:6px 14px;border-radius:8px;border:none;cursor:pointer;
+  font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;
+  background:transparent;color:var(--text2);
+  transition:all .18s;white-space:nowrap;flex-shrink:0;
+  position:relative;
+}
+.nav-tab:hover{color:var(--text);background:rgba(255,255,255,.04);}
+.nav-tab.active{
+  background:var(--card2);color:var(--accent);
+  box-shadow:0 1px 8px rgba(0,0,0,.3);
+}
+.nav-right{display:flex;align-items:center;gap:10px;position:relative;}
+.notif-btn{width:34px;height:34px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.95rem;position:relative;}
+.notif-dot{position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--accent2);border:2px solid var(--bg);display:none;}
+.avatar-nav{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;cursor:pointer;position:relative;}
+/* Profile dropdown */
+.profile-dropdown{position:absolute;top:44px;right:0;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:6px;min-width:200px;z-index:400;display:none;box-shadow:0 10px 30px rgba(0,0,0,.4);}
+.profile-dropdown.open{display:block;}
+.pd-header{padding:12px 14px;border-bottom:1px solid var(--border);margin-bottom:4px;}
+.pd-name{font-weight:600;font-size:.9rem;}
+.pd-email{color:var(--text2);font-size:.76rem;}
+.pd-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:9px;cursor:pointer;font-size:.85rem;transition:background .15s;}
+.pd-item:hover{background:var(--surface);}
+.pd-item-icon{font-size:1rem;width:20px;text-align:center;}
+.pd-divider{height:1px;background:var(--border);margin:4px 0;}
+.pd-logout{color:var(--accent2);}
+.screen{display:none;flex:1;padding:28px 24px;max-width:1100px;margin:0 auto;width:100%;}
+.screen.active{display:block;animation:pageIn .25s ease;}
+@keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.section-title{
+  font-family:'Syne',sans-serif;font-size:1.55rem;font-weight:800;
+  margin-bottom:4px;letter-spacing:-.5px;
+  background:linear-gradient(135deg,var(--text),var(--text2));
+  -webkit-background-clip:text;background-clip:text;
+}
+.section-sub{color:var(--text3);font-size:.88rem;margin-bottom:24px;}
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:22px;
+  transition:border-color .2s;
+}
+.card:hover{border-color:var(--border2);}
+.form-group{margin-bottom:14px;position:relative;}
+.form-group label{display:block;font-size:.78rem;color:var(--text2);margin-bottom:5px;}
+.form-group input,.form-group select,.form-group textarea{
+  width:100%;padding:11px 14px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;color:var(--text);
+  font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;
+  transition:all .2s;
+}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{
+  border-color:var(--accent);
+  background:rgba(245,166,35,.03);
+  box-shadow:0 0 0 3px rgba(245,166,35,.08);
+}
+.form-group label{color:var(--text2)!important;}
+.form-group select option{background:var(--surface);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.btn-main{
+  padding:13px 24px;
+  background:linear-gradient(135deg,var(--accent),#e8860f);
+  color:#000;border:none;border-radius:12px;
+  font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;
+  cursor:pointer;transition:all .15s;width:100%;
+  box-shadow:0 4px 14px rgba(245,166,35,.3);
+  letter-spacing:.3px;
+}
+.btn-main:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(245,166,35,.4);}
+.btn-main:active{transform:scale(.98);box-shadow:0 2px 8px rgba(245,166,35,.2);}
+.btn-main:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;}
+.btn-outline{
+  padding:10px 20px;background:transparent;
+  color:var(--text2);border:1px solid var(--border);
+  border-radius:10px;font-family:'DM Sans',sans-serif;
+  font-size:.85rem;cursor:pointer;transition:all .18s;
+}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
+.btn-outline:active{transform:scale(.98);}
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 10px;border-radius:20px;font-size:.71rem;font-weight:600;
+  letter-spacing:.3px;
+}
+.badge-yellow{background:rgba(245,166,35,.12);color:var(--accent);border:1px solid rgba(245,166,35,.2);}
+.badge-green{background:rgba(0,214,143,.1);color:var(--green);border:1px solid rgba(0,214,143,.2);}
+.badge-blue{background:rgba(78,158,255,.1);color:var(--blue);border:1px solid rgba(78,158,255,.2);}
+.badge-red{background:rgba(255,107,107,.1);color:var(--accent2);border:1px solid rgba(255,107,107,.2);}
+.alert{
+  padding:12px 16px;border-radius:10px;font-size:.85rem;
+  margin-bottom:14px;display:none;
+  animation:slideIn .2s ease;
+}
+@keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.alert.show{display:flex;align-items:center;gap:8px;}
+.alert-error{background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.25);color:#ff8fa3;}
+.alert-success{background:rgba(0,214,143,.08);border:1px solid rgba(0,214,143,.25);color:#00d68f;}
+.alert-info{background:rgba(78,158,255,.08);border:1px solid rgba(78,158,255,.25);color:#74b9ff;}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(0,0,0,.3);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* AUTOCOMPLETE */
+.autocomplete-list{position:absolute;top:100%;left:0;right:0;background:var(--card);border:1px solid var(--border);border-radius:10px;z-index:500;max-height:200px;overflow-y:auto;display:none;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.autocomplete-list.open{display:block;}
+.autocomplete-item{padding:10px 14px;cursor:pointer;font-size:.85rem;transition:background .15s;border-bottom:1px solid var(--border);}
+.autocomplete-item:last-child{border-bottom:none;}
+.autocomplete-item:hover{background:var(--surface);}
+.autocomplete-city{font-weight:500;}
+.autocomplete-state{color:var(--text2);font-size:.75rem;}
+
+/* PRICE SUGGESTION */
+.price-suggestion{background:rgba(61,220,132,.08);border:1px solid rgba(61,220,132,.2);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:none;}
+.price-suggestion.show{display:block;}
+.ps-title{font-size:.78rem;color:var(--green);font-weight:600;margin-bottom:4px;}
+.ps-details{font-size:.8rem;color:var(--text2);}
+.ps-btns{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.ps-btn{padding:5px 12px;border-radius:8px;border:1px solid var(--green);background:transparent;color:var(--green);font-size:.78rem;cursor:pointer;transition:all .2s;}
+.ps-btn:hover{background:var(--green);color:#000;}
+
+/* AUTH */
+.auth-wrap{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center;min-height:70vh;}
+.auth-hero h1{font-family:'Syne',sans-serif;font-size:clamp(2rem,3.5vw,3rem);font-weight:800;line-height:1.1;margin-bottom:14px;}
+.auth-hero h1 em{font-style:normal;color:var(--accent);}
+.auth-hero p{color:var(--text2);line-height:1.6;margin-bottom:20px;}
+.pill-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
+.pill{padding:6px 14px;border-radius:30px;border:1px solid var(--border);font-size:.78rem;color:var(--text2);display:flex;align-items:center;gap:5px;}
+.pill .dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
+.auth-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:24px;padding:36px;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+  position:relative;
+}
+.auth-card::before{
+  content:'';position:absolute;inset:0;
+  border-radius:24px;
+  background:linear-gradient(135deg,rgba(245,166,35,.04),transparent 60%);
+  pointer-events:none;
+}
+.auth-card h2{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:700;margin-bottom:4px;}
+.auth-card>p{color:var(--text2);font-size:.88rem;margin-bottom:24px;}
+.tab-switch{
+  display:flex;background:var(--surface);border-radius:10px;padding:3px;
+  margin-bottom:20px;border:1px solid var(--border);
+}
+.tab-btn{
+  flex:1;padding:9px;border:none;cursor:pointer;border-radius:8px;
+  font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;
+  background:transparent;color:var(--text2);transition:all .2s;
+}
+.tab-btn.active{
+  background:linear-gradient(135deg,var(--accent),#e8860f);
+  color:#000;box-shadow:0 2px 8px rgba(245,166,35,.25);
+}
+
+/* SEARCH */
+.search-bar{
+  display:grid;grid-template-columns:1fr 1fr 150px 130px auto;
+  gap:10px;margin-bottom:28px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:18px;padding:16px 20px;align-items:end;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);
+}
+.sb-group{position:relative;}
+.sb-group label{display:block;font-size:.73rem;color:var(--text2);margin-bottom:5px;}
+.sb-group input,.sb-group select{width:100%;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:9px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.86rem;outline:none;}
+.btn-search{padding:9px 18px;background:var(--accent);color:#000;border:none;border-radius:9px;font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;cursor:pointer;white-space:nowrap;}
+.rides-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px;}
+.ride-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:20px;
+  transition:all .2s;position:relative;overflow:hidden;
+}
+.ride-card::before{
+  content:'';position:absolute;top:0;left:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,var(--accent),var(--accent2));
+  opacity:0;transition:opacity .25s;border-radius:3px 0 0 3px;
+}
+.ride-card:hover{
+  border-color:var(--border2);
+  transform:translateY(-2px);
+  box-shadow:0 8px 28px rgba(0,0,0,.35);
+  background:var(--card2);
+}
+.ride-card:hover::before{opacity:1;}
+.ride-card.booked-card{border-color:rgba(255,107,107,.25);background:rgba(255,107,107,.02);}
+.ride-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+.ride-user{display:flex;align-items:center;gap:9px;}
+.ride-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0;background:linear-gradient(135deg,var(--accent),var(--accent2));}
+.ride-name{font-weight:600;font-size:.9rem;}
+.ride-rating{color:var(--text2);font-size:.78rem;}
+.ride-type{padding:4px 10px;border-radius:20px;font-size:.72rem;font-weight:600;}
+.type-bike{background:rgba(245,166,35,.15);color:var(--accent);}
+.type-car{background:rgba(78,158,255,.15);color:var(--blue);}
+.route-point{display:flex;align-items:center;gap:9px;padding:3px 0;}
+.route-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.dot-from{background:var(--green);}
+.dot-to{background:var(--accent2);}
+.route-line{width:2px;height:16px;background:var(--border);margin-left:3px;}
+.route-label{font-size:.75rem;color:var(--text2);}
+.route-val{font-size:.9rem;font-weight:500;}
+.ride-meta{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0;}
+.meta-item{display:flex;align-items:center;gap:4px;font-size:.78rem;color:var(--text2);}
+.meta-item span{color:var(--text);font-weight:500;}
+.ride-footer{display:flex;justify-content:space-between;align-items:center;}
+.ride-price{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:700;color:var(--accent);}
+.ride-price small{font-size:.68rem;color:var(--text2);}
+.btn-connect{
+  padding:7px 16px;
+  background:linear-gradient(135deg,var(--green),#00b87d);
+  color:#000;border:none;border-radius:8px;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;
+  cursor:pointer;transition:all .15s;
+  box-shadow:0 2px 8px rgba(0,214,143,.25);
+}
+.btn-connect:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,214,143,.35);}
+.btn-connect:active{transform:scale(.97);}
+.btn-myrride{padding:7px 16px;background:rgba(245,166,35,.15);color:var(--accent);border:1px solid rgba(245,166,35,.3);border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;cursor:default;}
+.btn-full{padding:7px 16px;background:rgba(255,107,107,.15);color:var(--accent2);border:1px solid rgba(255,107,107,.3);border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;cursor:default;}
+.seats-bar{margin:8px 0;background:var(--surface);border-radius:6px;height:5px;overflow:hidden;}
+.seats-fill{height:100%;border-radius:6px;background:var(--green);}
+.seats-fill.full{background:var(--accent2);}
+.empty-state{text-align:center;padding:48px 24px;color:var(--text2);}
+.empty-icon{font-size:3rem;margin-bottom:12px;}
+.loading-state{text-align:center;padding:48px;color:var(--text2);}
+
+/* MAP POPUP */
+.map-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:600;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.map-overlay.open{display:flex;}
+.map-box{background:var(--card);border-radius:20px;width:90%;max-width:800px;height:70vh;display:flex;flex-direction:column;overflow:hidden;}
+.map-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.map-header h3{font-family:'Syne',sans-serif;font-weight:700;}
+.map-close{cursor:pointer;color:var(--text2);font-size:1.2rem;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--surface);}
+.map-close:hover{color:var(--text);}
+#route-map{flex:1;border-radius:0 0 20px 20px;}
+.map-info-bar{padding:10px 20px;background:var(--surface);display:flex;gap:20px;align-items:center;font-size:.82rem;}
+.map-stat{display:flex;align-items:center;gap:6px;}
+.map-stat-val{font-weight:600;color:var(--accent);}
+.live-tracking-bar{padding:10px 20px;background:rgba(61,220,132,.1);border-top:1px solid rgba(61,220,132,.2);display:flex;align-items:center;justify-content:space-between;font-size:.82rem;}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.btn-live{padding:6px 14px;background:var(--green);color:#000;border:none;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;}
+
+/* POST RIDE */
+.post-wrap{display:grid;grid-template-columns:1fr 1fr;gap:36px;}
+.vehicle-toggle{display:flex;gap:10px;margin-bottom:16px;}
+.veh-btn{flex:1;padding:12px;border-radius:10px;border:2px solid var(--border);background:var(--surface);color:var(--text2);font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .2s;text-align:center;}
+.veh-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(245,166,35,.08);}
+.veh-btn .icon{font-size:1.3rem;display:block;margin-bottom:3px;}
+.hint{font-size:.75rem;color:var(--text2);margin-top:4px;}
+.my-ride-item{padding:12px 0;border-bottom:1px solid var(--border);}
+.my-ride-item:last-child{border-bottom:none;}
+.my-ride-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.booking-info{background:var(--surface);border-radius:8px;padding:8px 10px;font-size:.78rem;margin-top:6px;}
+.booking-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;}
+.map-btn-small{padding:5px 12px;background:rgba(78,158,255,.15);color:var(--blue);border:1px solid rgba(78,158,255,.3);border-radius:8px;font-size:.75rem;cursor:pointer;margin-top:6px;}
+.map-btn-small:hover{background:var(--blue);color:#000;}
+
+/* CHAT */
+.chat-layout{display:grid;grid-template-columns:270px 1fr;height:calc(100vh - 150px);background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.chat-list{border-right:1px solid var(--border);overflow-y:auto;}
+.chat-list-header{padding:18px;border-bottom:1px solid var(--border);}
+.chat-list-header h3{font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;}
+.chat-item{padding:13px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s;}
+.chat-item:hover,.chat-item.active{background:var(--surface);}
+.chat-item.active{border-left:3px solid var(--accent);}
+.chat-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;flex-shrink:0;}
+.chat-meta{flex:1;min-width:0;}
+.chat-name{font-weight:600;font-size:.86rem;}
+.chat-preview{font-size:.76rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.unread-badge{background:var(--accent);color:#000;width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;}
+.chat-main{display:flex;flex-direction:column;}
+.chat-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
+.chat-messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px;}
+.msg{display:flex;gap:8px;max-width:78%;}
+.msg.sent{flex-direction:row-reverse;margin-left:auto;}
+.msg-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.72rem;flex-shrink:0;}
+.msg-bubble{padding:10px 14px;border-radius:16px;font-size:.86rem;line-height:1.5;}
+.msg.recv .msg-bubble{background:var(--surface);border:1px solid var(--border);border-radius:4px 16px 16px 16px;}
+.msg.sent .msg-bubble{background:var(--accent);color:#000;border-radius:16px 4px 16px 16px;}
+.msg-time{font-size:.68rem;color:var(--text2);margin-top:3px;}
+.msg.sent .msg-time{text-align:right;}
+.chat-input-bar{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;}
+.chat-input{flex:1;padding:10px 16px;background:var(--surface);border:1px solid var(--border);border-radius:22px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;}
+.chat-input:focus{border-color:var(--accent);}
+.btn-send{width:40px;height:40px;border-radius:50%;background:var(--accent);color:#000;border:none;font-size:1rem;cursor:pointer;}
+.typing-indicator{font-size:.75rem;color:var(--text2);padding:0 20px 8px;font-style:italic;}
+
+/* WALLET */
+.wallet-card{
+  background:linear-gradient(135deg,#0d1929 0%,#0f2040 50%,#0d1929 100%);
+  border:1px solid rgba(78,158,255,.2);
+  border-radius:22px;padding:28px;margin-bottom:24px;
+  position:relative;overflow:hidden;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+}
+.wallet-card::before{
+  content:'';position:absolute;top:-60px;right:-60px;
+  width:200px;height:200px;border-radius:50%;
+  background:radial-gradient(circle,rgba(78,158,255,.12),transparent 70%);
+  pointer-events:none;
+}
+.wallet-card::after{
+  content:'';position:absolute;bottom:-40px;left:-40px;
+  width:160px;height:160px;border-radius:50%;
+  background:radial-gradient(circle,rgba(245,166,35,.08),transparent 70%);
+  pointer-events:none;
+}
+.wallet-balance{
+  font-family:'Syne',sans-serif;font-size:2.6rem;font-weight:800;
+  color:#fff;margin-bottom:4px;letter-spacing:-1px;
+  position:relative;z-index:1;
+}
+.wallet-label{color:rgba(255,255,255,.45);font-size:.78rem;margin-bottom:4px;position:relative;z-index:1;}
+.wallet-actions{display:flex;gap:10px;margin-top:20px;position:relative;z-index:1;}
+.wallet-btn{
+  flex:1;padding:11px;border-radius:11px;border:none;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;
+  cursor:pointer;transition:all .18s;
+}
+.wallet-btn:hover{transform:translateY(-1px);}
+.wallet-btn:active{transform:scale(.97);}
+.tx-list{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.tx-item{display:flex;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border);gap:14px;}
+.tx-item:last-child{border-bottom:none;}
+.tx-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.tx-info{flex:1;}
+.tx-label{font-weight:500;font-size:.88rem;}
+.tx-date{color:var(--text2);font-size:.76rem;}
+.tx-amount{font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;}
+.withdraw-form{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;display:none;}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-box{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:22px;padding:30px;width:100%;max-width:420px;margin:16px;
+  box-shadow:0 24px 60px rgba(0,0,0,.6);
+  animation:modalIn .2s ease;
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.modal-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;margin-bottom:6px;}
+.modal-sub{color:var(--text2);font-size:.84rem;margin-bottom:20px;}
+.payment-methods{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.pay-method{padding:14px;border:2px solid var(--border);border-radius:12px;cursor:pointer;text-align:center;transition:all .2s;background:var(--surface);}
+.pay-method:hover,.pay-method.selected{border-color:var(--accent);background:rgba(245,166,35,.08);}
+.pay-method-icon{font-size:1.6rem;margin-bottom:5px;}
+.pay-method-name{font-size:.82rem;font-weight:600;}
+.pay-method-desc{font-size:.72rem;color:var(--text2);}
+@media(max-width:768px){
+  .auth-wrap{grid-template-columns:1fr;}.auth-hero{display:none;}
+  .search-bar{grid-template-columns:1fr 1fr;}.sb-group:nth-child(4),.sb-group:nth-child(5){grid-column:1/-1;}
+  .post-wrap{grid-template-columns:1fr;}
+  .chat-layout{grid-template-columns:1fr;}.chat-list{display:none;}
+  .rides-grid{grid-template-columns:1fr;}
+  .map-box{width:95%;height:80vh;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- NAV -->
+<nav>
+  <div class="logo"><div class="logo-icon">🏍️</div>Buddy<span>Ride</span></div>
+  <div style="display:flex;align-items:center;gap:6px;margin-left:12px;">
+    <button onclick="setLang('en')" id="lang-en" style="padding:3px 8px;border-radius:20px;border:1px solid var(--border);background:var(--accent);color:#000;font-size:.72rem;font-weight:700;cursor:pointer;">EN</button>
+    <button onclick="setLang('te')" id="lang-te" style="padding:3px 8px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:.72rem;cursor:pointer;">తె</button>
+    <button onclick="setLang('hi')" id="lang-hi" style="padding:3px 8px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:.72rem;cursor:pointer;">हि</button>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="goto('auth')">Home</button>
+    <button class="nav-tab" onclick="goto('search')">Find Ride</button>
+    <button class="nav-tab" onclick="goto('post')">Post Ride</button>
+    <button class="nav-tab" onclick="goto('booked')">My Bookings</button>
+    <button class="nav-tab" onclick="goto('chat')">Chat</button>
+    <button class="nav-tab" onclick="goto('history')">History</button>
+    <button class="nav-tab" onclick="goto('savings')">Savings</button>
+    <button class="nav-tab" onclick="goto('payments')">Wallet</button>
+  </div>
+  <div class="nav-right">
+    <div class="notif-btn" id="notif-btn" onclick="toggleNotifPanel()">🔔<div class="notif-dot" id="notif-dot"></div></div>
+    <button id="sos-btn" onclick="triggerSOS()" style="padding:6px 14px;background:var(--accent2);color:#fff;border:none;border-radius:20px;font-size:.75rem;font-weight:700;cursor:pointer;display:none;">🆘 SOS</button>
+    <!-- FEATURE 3: Profile dropdown -->
+    <div class="avatar-nav" id="nav-avatar" onclick="toggleProfileMenu()">?</div>
+    <div class="profile-dropdown" id="profile-dropdown">
+      <div class="pd-header">
+        <div class="pd-name" id="pd-name">Not logged in</div>
+        <div class="pd-email" id="pd-email"></div>
+      </div>
+      <div class="pd-item" onclick="goto('post');closeProfileMenu()"><span class="pd-item-icon">🏍️</span>Post a Ride</div>
+      <div class="pd-item" onclick="goto('booked');closeProfileMenu()"><span class="pd-item-icon">🎫</span>My Bookings</div>
+      <div class="pd-item" onclick="goto('history');closeProfileMenu()"><span class="pd-item-icon">📋</span>Ride History</div>
+      <div class="pd-item" onclick="goto('savings');closeProfileMenu()"><span class="pd-item-icon">📊</span>Savings</div>
+      <div class="pd-item" onclick="goto('payments');closeProfileMenu()"><span class="pd-item-icon">💰</span>Wallet</div>
+      <div class="pd-item" onclick="goto('chat');closeProfileMenu()"><span class="pd-item-icon">💬</span>Messages</div>
+      <div class="pd-divider"></div>
+      <div class="pd-item pd-logout" onclick="doLogout()"><span class="pd-item-icon">🚪</span>Logout</div>
+    </div>
+  </div>
+</nav>
+
+<!-- FEATURE 4: Map overlay -->
+<div class="map-overlay" id="map-overlay">
+  <div class="map-box">
+    <div class="map-header">
+      <div>
+        <h3 id="map-title">Route Map</h3>
+        <div style="color:var(--text2);font-size:.78rem;" id="map-subtitle"></div>
+      </div>
+      <div class="map-close" onclick="closeMap()">✕</div>
+    </div>
+    <div class="map-info-bar">
+      <div class="map-stat">📍 Distance: <span class="map-stat-val" id="map-distance">—</span></div>
+      <div class="map-stat">⏱️ Est. time: <span class="map-stat-val" id="map-time">—</span></div>
+      <div class="map-stat">💰 Fair price: <span class="map-stat-val" id="map-price">—</span></div>
+    </div>
+    <div id="route-map"></div>
+    <div class="live-tracking-bar" id="live-bar" style="display:none;">
+      <div style="display:flex;align-items:center;gap:8px;"><div class="live-dot"></div><span style="color:var(--green);font-weight:600;">Live tracking active</span></div>
+      <button class="btn-live" onclick="stopTracking()">Stop</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAYMENT MODAL -->
+<div class="modal-overlay" id="payment-modal">
+  <div class="modal-box">
+    <div class="modal-title">Add Money 💳</div>
+    <div class="modal-sub">Powered by Razorpay — Test Mode</div>
+    <div id="pay-modal-alert" class="alert"></div>
+    <div class="form-group"><label>Amount (₹)</label>
+      <input type="number" id="modal-amount" placeholder="Enter amount e.g. 500" min="1" max="50000" oninput="updateModalAmount()">
+    </div>
+    <div class="payment-methods">
+      <div class="pay-method selected" id="pm-phonepe" onclick="selectPayMethod('phonepe')"><div class="pay-method-icon">🟣</div><div class="pay-method-name">PhonePe</div><div class="pay-method-desc">UPI</div></div>
+      <div class="pay-method" id="pm-gpay" onclick="selectPayMethod('gpay')"><div class="pay-method-icon">🔵</div><div class="pay-method-name">Google Pay</div><div class="pay-method-desc">UPI</div></div>
+      <div class="pay-method" id="pm-paytm" onclick="selectPayMethod('paytm')"><div class="pay-method-icon">💙</div><div class="pay-method-name">Paytm</div><div class="pay-method-desc">Wallet</div></div>
+      <div class="pay-method" id="pm-card" onclick="selectPayMethod('card')"><div class="pay-method-icon">💳</div><div class="pay-method-name">Card</div><div class="pay-method-desc">Debit/Credit</div></div>
+    </div>
+    <div class="form-group" id="upi-input-group"><label>UPI ID</label><input type="text" id="modal-upi" placeholder="yourname@upi or phone@ybl"></div>
+    <div style="background:rgba(61,220,132,.08);border:1px solid rgba(61,220,132,.2);border-radius:10px;padding:10px 14px;font-size:.78rem;color:var(--green);margin-bottom:14px;">🧪 Test Mode — Use UPI: success@razorpay</div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn-main" id="btn-pay-now" onclick="doPayment()" style="flex:1;">Pay ₹<span id="modal-amount-preview">0</span></button>
+      <button class="btn-outline" onclick="closePayModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH -->
+<div class="screen active" id="screen-auth">
+  <div class="auth-wrap">
+    <div class="auth-hero">
+      <h1>Travel together,<br>spend <em>less.</em></h1>
+      <p>Find travel buddies heading your way — split fuel costs, share the journey. Works for cars and bikes across India.</p>
+      <div class="pill-row">
+        <div class="pill"><div class="dot"></div>Live backend</div>
+        <div class="pill"><div class="dot"></div>Real database</div>
+        <div class="pill"><div class="dot"></div>Free maps</div>
+        <div class="pill"><div class="dot"></div>Live tracking</div>
+      </div>
+    </div>
+    <div class="auth-card">
+      <h2>Welcome to BuddyRide</h2>
+      <p>Your account is saved to the real database</p>
+      <div class="tab-switch">
+        <button class="tab-btn active" id="btn-login" onclick="switchAuth('login')">Sign In</button>
+        <button class="tab-btn" id="btn-register" onclick="switchAuth('register')">Register</button>
+      </div>
+      <div id="auth-alert" class="alert"></div>
+      <div id="form-login">
+        <div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="you@example.com"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="login-password" placeholder="••••••••"></div>
+        <button class="btn-main" id="btn-do-login" onclick="doLogin()">Sign In →</button>
+      </div>
+      <div id="form-register" style="display:none">
+        <div class="form-group"><label>Full Name</label><input type="text" id="reg-name" placeholder="Arjun Reddy"></div>
+        <div class="form-group"><label>Phone</label><input type="tel" id="reg-phone" placeholder="+91 98765 43210"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="reg-email" placeholder="you@example.com"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="reg-password" placeholder="At least 6 characters"></div>
+        <button class="btn-main" id="btn-do-register" onclick="doRegister()">Create Account →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SEARCH -->
+<div class="screen" id="screen-search">
+  <div class="section-title">Find a Ride 🗺️</div>
+  <div class="section-sub">Live rides from the database</div>
+  <div class="search-bar">
+    <!-- FEATURE 2: Autocomplete on search -->
+    <div class="sb-group">
+      <label>From</label>
+      <input type="text" id="s-from" placeholder="Type city name..." autocomplete="off" oninput="autocomplete(this,'s-from-list')">
+      <div class="autocomplete-list" id="s-from-list"></div>
+    </div>
+    <div class="sb-group">
+      <label>To</label>
+      <input type="text" id="s-to" placeholder="Type city name..." autocomplete="off" oninput="autocomplete(this,'s-to-list')">
+      <div class="autocomplete-list" id="s-to-list"></div>
+    </div>
+    <div class="sb-group"><label>Date</label><input type="date" id="s-date"></div>
+    <div class="sb-group"><label>Vehicle</label>
+      <select id="s-vehicle"><option value="any">Any</option><option value="bike">🏍️ Bike</option><option value="car">🚗 Car</option></select>
+    </div>
+    <div class="sb-group"><button class="btn-search" onclick="doSearch()">Search</button></div>
+  </div>
+  <div id="search-alert" class="alert"></div>
+  <div id="rides-grid" class="rides-grid"></div>
+</div>
+
+<!-- POST RIDE -->
+<div class="screen" id="screen-post">
+  <div class="post-wrap">
+    <div class="card">
+      <div class="section-title" style="font-size:1.4rem;margin-bottom:4px;">Post a Ride 🚀</div>
+      <p style="color:var(--text2);font-size:.88rem;margin-bottom:22px;">Offer a seat — saved to the live database</p>
+      <div id="post-alert" class="alert"></div>
+      <div class="vehicle-toggle">
+        <div class="veh-btn active" id="veh-bike" onclick="selectVeh('bike')"><span class="icon">🏍️</span>Bike</div>
+        <div class="veh-btn" id="veh-car" onclick="selectVeh('car')"><span class="icon">🚗</span>Car</div>
+      </div>
+      <!-- FEATURE 2: Autocomplete on post ride -->
+      <div class="form-group">
+        <label>From City</label>
+        <input type="text" id="p-from" placeholder="Type city name..." autocomplete="off" oninput="autocomplete(this,'p-from-list');calcDistance()">
+        <div class="autocomplete-list" id="p-from-list"></div>
+      </div>
+      <div class="form-group">
+        <label>To City</label>
+        <input type="text" id="p-to" placeholder="Type city name..." autocomplete="off" oninput="autocomplete(this,'p-to-list');calcDistance()">
+        <div class="autocomplete-list" id="p-to-list"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Departure Date</label><input type="date" id="p-date"></div>
+        <div class="form-group"><label>Departure Time</label><input type="time" id="p-time" value="08:00"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Booking Expires On</label><input type="date" id="p-expiry"><div class="hint">⏰ Last date to book</div></div>
+        <div class="form-group">
+          <label>Available Seats</label>
+          <select id="p-seats"><option value="1">1 Seat</option></select>
+          <div class="hint" id="seats-hint">🏍️ Bikes carry 1 passenger</div>
+        </div>
+      </div>
+      <!-- FEATURE 1: Price suggestion -->
+      <div class="price-suggestion" id="price-suggestion">
+        <div class="ps-title">💡 Suggested price based on distance</div>
+        <div class="ps-details" id="ps-details">Calculating...</div>
+        <div class="ps-btns" id="ps-btns"></div>
+      </div>
+      <div class="form-group"><label>Price per Seat (₹) — you can change this</label><input type="number" id="p-price" placeholder="Enter your price" min="1"></div>
+      <div class="form-group"><label>Pickup Details</label><input type="text" id="p-pickup" placeholder="e.g. Kukatpally X-roads, near Apollo pharmacy"></div>
+      <div class="form-group"><label>Notes (optional)</label><input type="text" id="p-notes" placeholder="e.g. Light luggage only, no smoking"></div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn-main" id="btn-post-ride" onclick="doPostRide()" style="flex:1;">Post Ride →</button>
+        <!-- FEATURE 4: Preview map -->
+        <button class="btn-outline" onclick="previewRouteMap()" id="btn-preview-map" style="display:none;">🗺️ Preview Route</button>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:14px;">My Posted Rides</div>
+        <div id="my-rides-list"><div style="color:var(--text2);font-size:.85rem;">Loading...</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div class="screen" id="screen-chat">
+  <div class="chat-layout">
+    <div class="chat-list">
+      <div class="chat-list-header"><h3>Messages 💬</h3></div>
+      <div id="conversations-list"><div style="padding:16px;color:var(--text2);font-size:.84rem;">Loading...</div></div>
+    </div>
+    <div class="chat-main">
+      <div class="chat-header" id="chat-header"><div style="color:var(--text2);font-size:.88rem;">Select a conversation</div></div>
+      <div class="chat-messages" id="chat-messages"><div class="empty-state"><div class="empty-icon">💬</div><div>Select a conversation</div></div></div>
+      <div class="typing-indicator" id="typing-indicator"></div>
+      <div class="chat-input-bar">
+        <input class="chat-input" type="text" id="chat-input" placeholder="Type a message..." onkeydown="handleChatKey(event)" disabled>
+        <button class="btn-send" onclick="doSendMessage()" id="btn-send-msg" disabled>➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WALLET -->
+<div class="screen" id="screen-payments">
+  <div class="section-title">Wallet 💰</div>
+  <div class="section-sub">Your BuddyRide balance — live from the database</div>
+  <div id="payments-alert" class="alert"></div>
+  <div class="wallet-card">
+    <div class="wallet-label">Available balance</div>
+    <div class="wallet-balance" id="wallet-balance">₹0.00</div>
+    <div style="color:rgba(255,255,255,.4);font-size:.78rem;" id="wallet-user">Loading...</div>
+    <div class="wallet-actions">
+      <button class="wallet-btn" style="background:var(--accent);color:#000;" onclick="openPayModal()">+ Add Money</button>
+      <button class="wallet-btn" style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);" onclick="toggleWithdraw()">Withdraw</button>
+    </div>
+  </div>
+  <div class="withdraw-form" id="withdraw-form">
+    <div style="font-weight:600;margin-bottom:4px;">Withdraw to UPI</div>
+    <div style="color:var(--text2);font-size:.82rem;margin-bottom:14px;">Money sent within 24 hours</div>
+    <div id="withdraw-alert" class="alert"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Amount (₹)</label><input type="number" id="withdraw-amount" placeholder="Min ₹50" min="50"></div>
+      <div class="form-group"><label>Your UPI ID</label><input type="text" id="withdraw-upi" placeholder="yourname@upi"></div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn-main" onclick="doWithdraw()" style="flex:1;">Withdraw →</button>
+      <button class="btn-outline" onclick="toggleWithdraw()">Cancel</button>
+    </div>
+  </div>
+  <div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:14px;">Transaction History</div>
+  <div class="tx-list" id="tx-list"><div style="padding:20px;color:var(--text2);font-size:.85rem;">Loading...</div></div>
+</div>
+
+<!-- NOTIFICATIONS PANEL -->
+<div id="notif-panel" style="position:fixed;top:70px;right:24px;width:320px;background:var(--card);border:1px solid var(--border);border-radius:16px;z-index:400;display:none;max-height:400px;overflow-y:auto;box-shadow:0 20px 40px rgba(0,0,0,.5);">
+  <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+    <div style="font-family:Syne,sans-serif;font-weight:700;">Notifications</div>
+    <div style="display:flex;gap:8px;">
+      <span onclick="markNotifsRead()" style="font-size:.75rem;color:var(--blue);cursor:pointer;">Mark all read</span>
+      <span onclick="toggleNotifPanel()" style="cursor:pointer;color:var(--text2);">✕</span>
+    </div>
+  </div>
+  <div id="notif-list"><div style="padding:16px;color:var(--text2);font-size:.84rem;">Loading...</div></div>
+</div>
+
+<!-- BOOKED RIDES SCREEN -->
+<div class="screen" id="screen-booked">
+  <div class="section-title" id="t-mybook">My Bookings 🎫</div>
+  <div class="section-sub" id="t-mybook-sub">Rides you have booked</div>
+  <div id="booked-alert" class="alert"></div>
+  <div id="booked-list"><div class="loading-state">Loading...</div></div>
+</div>
+
+<!-- HISTORY SCREEN -->
+<div class="screen" id="screen-history">
+  <div class="section-title" id="t-history">Ride History 📋</div>
+  <div class="section-sub" id="t-history-sub">All your past rides as driver and rider</div>
+  <div style="display:flex;gap:10px;margin-bottom:20px;">
+    <button class="tab-btn active" id="hist-tab-rider" onclick="switchHistTab('rider')" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--accent);color:#000;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:600;">As Rider</button>
+    <button class="tab-btn" id="hist-tab-driver" onclick="switchHistTab('driver')" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:DM Sans,sans-serif;">As Driver</button>
+  </div>
+  <div id="history-list"><div class="loading-state">Loading...</div></div>
+</div>
+
+<!-- SAVINGS SCREEN -->
+<div class="screen" id="screen-savings">
+  <div class="section-title" id="t-savings">Your Impact 📊</div>
+  <div class="section-sub" id="t-savings-sub">See how much you have saved and contributed</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px;" id="savings-stats"></div>
+  <div id="savings-rides"></div>
+</div>
+
+<!-- RATE AFTER RIDE MODAL -->
+<div class="modal-overlay" id="rate-modal">
+  <div class="modal-box">
+    <div class="modal-title" id="t-rate-title">Rate your ride ⭐</div>
+    <div class="modal-sub" id="rate-rider-name">How was your experience?</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;justify-content:center;" id="star-row">
+      <span class="star-pick" data-val="1" onclick="pickStar(1)" style="font-size:2rem;cursor:pointer;color:var(--border);">★</span>
+      <span class="star-pick" data-val="2" onclick="pickStar(2)" style="font-size:2rem;cursor:pointer;color:var(--border);">★</span>
+      <span class="star-pick" data-val="3" onclick="pickStar(3)" style="font-size:2rem;cursor:pointer;color:var(--border);">★</span>
+      <span class="star-pick" data-val="4" onclick="pickStar(4)" style="font-size:2rem;cursor:pointer;color:var(--border);">★</span>
+      <span class="star-pick" data-val="5" onclick="pickStar(5)" style="font-size:2rem;cursor:pointer;color:var(--border);">★</span>
+    </div>
+    <div class="form-group"><label id="t-review-label">Write a review (optional)</label>
+      <textarea id="rate-review" placeholder="Share your experience..." style="height:80px;"></textarea>
+    </div>
+    <input type="hidden" id="rate-ride-id">
+    <input type="hidden" id="rate-rated-id">
+    <input type="hidden" id="rate-stars" value="0">
+    <div style="display:flex;gap:10px;">
+      <button class="btn-main" onclick="submitRating()" style="flex:1;" id="t-submit-rating">Submit Rating →</button>
+      <button class="btn-outline" onclick="closeRateModal()">Skip</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script type="module">
+import { register, login, logout, isLoggedIn } from './src/api/auth.js';
+import { searchRides, postRide, bookRide, myPostedRides, myBookedRides } from './src/api/rides.js';
+import { getConversations, getMessages, sendMessage, getWallet, topUpWallet, withdrawFromWallet, getTransactions } from './src/api/services.js';
+import * as Socket from './src/api/socket.js';
+import { currentUser } from './src/api/config.js';
+
+// Global exports
+// goto assigned below
+window.switchAuth=switchAuth;window.doLogin=doLogin;window.doRegister=doRegister;
+window.doSearch=doSearch;window.doPostRide=doPostRide;window.selectVeh=selectVeh;
+window.doSendMessage=doSendMessage;window.handleChatKey=handleChatKey;
+window.openConversation=openConversation;window.toggleProfileMenu=toggleProfileMenu;
+window.closeProfileMenu=closeProfileMenu;window.doLogout=doLogout;
+window.openPayModal=openPayModal;window.closePayModal=closePayModal;
+window.doPayment=doPayment;window.selectPayMethod=selectPayMethod;window.updateModalAmount=updateModalAmount;
+window.toggleWithdraw=toggleWithdraw;window.doWithdraw=doWithdraw;window.doBookRide=doBookRide;
+window.openRouteMap=openRouteMap;window.closeMap=closeMap;window.stopTracking=stopTracking;
+window.previewRouteMap=previewRouteMap;window.autocomplete=autocomplete;window.calcDistance=calcDistance;
+
+let selectedVehicle='bike';
+let activeChatPartner=null;
+let typingTimeout=null;
+let selectedPayMethod='phonepe';
+let routeMap=null;
+let trackingWatcher=null;
+let trackingMarker=null;
+let distanceKm=0;
+let fromCoords=null;
+let toCoords=null;
+
+// ── Init ──────────────────────────────────────────────────────
+(async()=>{
+  if(isLoggedIn()){const u=currentUser.get();updateNavForUser(u);Socket.connect();setupSocketListeners();}
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('s-date').value=today;
+  document.getElementById('p-date').value=today;
+  const exp=new Date();exp.setDate(exp.getDate()+2);
+  document.getElementById('p-expiry').value=exp.toISOString().split('T')[0];
+  window.addEventListener('buddyride:logout',()=>{showAlert('auth-alert','Session expired. Please log in again.','error');goto('auth');});
+  document.addEventListener('click',(e)=>{
+    if(!e.target.closest('.nav-right'))closeProfileMenu();
+    if(!e.target.closest('.form-group'))document.querySelectorAll('.autocomplete-list').forEach(l=>l.classList.remove('open'));
+  });
+})();
+
+// ── Navigation ────────────────────────────────────────────────
+
+// Open chat directly with a specific person from My Bookings
+async function openChatWith(partnerId, partnerName){
+  if(!partnerId||partnerId==='undefined'){
+    showAlert('booked-alert','Chat not available yet — book a ride first.','error');
+    return;
+  }
+  // Switch to chat tab
+  goto('chat');
+  // Wait for chat screen to load then open the conversation
+  setTimeout(async()=>{
+    // First load conversations
+    await loadConversations();
+    // Then open this specific conversation
+    await openConversation(partnerId, partnerName);
+  }, 400);
+}
+window.openChatWith=openChatWith;
+
+// goto defined at bottom of script
+
+function switchAuth(mode){
+  document.getElementById('form-login').style.display=mode==='login'?'block':'none';
+  document.getElementById('form-register').style.display=mode==='register'?'block':'none';
+  document.getElementById('btn-login').classList.toggle('active',mode==='login');
+  document.getElementById('btn-register').classList.toggle('active',mode==='register');
+  hideAlert('auth-alert');
+}
+
+// ── FEATURE 3: Profile dropdown ───────────────────────────────
+function toggleProfileMenu(){
+  const dd=document.getElementById('profile-dropdown');
+  dd.classList.toggle('open');
+}
+function closeProfileMenu(){document.getElementById('profile-dropdown').classList.remove('open');}
+
+// ── Auth ──────────────────────────────────────────────────────
+async function doLogin(){
+  const btn=document.getElementById('btn-do-login');
+  const email=document.getElementById('login-email').value.trim();
+  const password=document.getElementById('login-password').value;
+  if(!email||!password)return showAlert('auth-alert','Please fill in all fields.','error');
+  setLoading(btn,true,'Sign In →');
+  const{user,error}=await login({email,password});
+  setLoading(btn,false,'Sign In →');
+  if(error)return showAlert('auth-alert',error,'error');
+  updateNavForUser(user);Socket.connect();setupSocketListeners();goto('search');
+}
+
+async function doRegister(){
+  const btn=document.getElementById('btn-do-register');
+  const name=document.getElementById('reg-name').value.trim();
+  const phone=document.getElementById('reg-phone').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const password=document.getElementById('reg-password').value;
+  if(!name||!phone||!email||!password)return showAlert('auth-alert','Please fill in all fields.','error');
+  setLoading(btn,true,'Create Account →');
+  const{user,error}=await register({name,email,phone,password});
+  setLoading(btn,false,'Create Account →');
+  if(error)return showAlert('auth-alert',error,'error');
+  updateNavForUser(user);Socket.connect();setupSocketListeners();goto('search');
+}
+
+async function doLogout(){
+  await logout();Socket.disconnect();
+  document.getElementById('nav-avatar').textContent='?';
+  document.getElementById('pd-name').textContent='Not logged in';
+  document.getElementById('pd-email').textContent='';
+  closeProfileMenu();goto('auth');
+}
+
+function updateNavForUser(user){
+  const initials=user.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('nav-avatar').textContent=initials;
+  document.getElementById('pd-name').textContent=user.name;
+  document.getElementById('pd-email').textContent=user.email;
+}
+
+// ── FEATURE 2: City Autocomplete (free Nominatim API) ─────────
+let acTimer=null;
+async function autocomplete(input, listId){
+  const val=input.value.trim();
+  const list=document.getElementById(listId);
+  if(val.length<2){list.classList.remove('open');return;}
+  clearTimeout(acTimer);
+  list.innerHTML='<div style="padding:10px 14px;color:var(--text2);font-size:.82rem;">Searching...</div>';
+  list.classList.add('open');
+  acTimer=setTimeout(async()=>{
+    try{
+      const res=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val)}&countrycodes=in&limit=6&format=json&addressdetails=1`,
+        {headers:{'Accept-Language':'en'}});
+      const data=await res.json();
+      if(!data.length){list.classList.remove('open');return;}
+      list.innerHTML=data.map(p=>{
+        const city=p.address?.city||p.address?.town||p.address?.village||p.address?.district||p.name;
+        const state=p.address?.state||'';
+        return`<div class="autocomplete-item" onclick="selectCity('${input.id}','${listId}','${city.replace(/'/g,'`')}',${p.lat},${p.lon})">
+          <div class="autocomplete-city">${city}</div>
+          <div class="autocomplete-state">${state}</div>
+        </div>`;
+      }).join('');
+      list.classList.add('open');
+    }catch(e){console.log('Autocomplete error',e);}
+  },350);
+}
+
+function selectCity(inputId,listId,city,lat,lng){
+  document.getElementById(inputId).value=city;
+  document.getElementById(listId).classList.remove('open');
+  if(inputId==='p-from'){fromCoords={lat:parseFloat(lat),lng:parseFloat(lng)};}
+  if(inputId==='p-to'){toCoords={lat:parseFloat(lat),lng:parseFloat(lng)};}
+  calcDistance();
+}
+window.selectCity=selectCity;
+
+// ── FEATURE 1: Price suggestion from distance (free OSRM) ─────
+let distTimer=null;
+async function calcDistance(){
+  const from=document.getElementById('p-from').value.trim();
+  const to=document.getElementById('p-to').value.trim();
+  if(!from||!to||from.length<2||to.length<2)return;
+  clearTimeout(distTimer);
+  distTimer=setTimeout(async()=>{
+    try{
+      // Geocode if we don't have coords yet
+      if(!fromCoords){
+        const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(from)}&countrycodes=in&limit=1&format=json`);
+        const d=await r.json();
+        if(d[0])fromCoords={lat:parseFloat(d[0].lat),lng:parseFloat(d[0].lon)};
+      }
+      if(!toCoords){
+        const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(to)}&countrycodes=in&limit=1&format=json`);
+        const d=await r.json();
+        if(d[0])toCoords={lat:parseFloat(d[0].lat),lng:parseFloat(d[0].lon)};
+      }
+      if(!fromCoords||!toCoords)return;
+
+      // Get route distance using free OSRM
+      const osrmRes=await fetch(`https://router.project-osrm.org/route/v1/driving/${fromCoords.lng},${fromCoords.lat};${toCoords.lng},${toCoords.lat}?overview=false`);
+      const osrmData=await osrmRes.json();
+      if(osrmData.routes&&osrmData.routes[0]){
+        distanceKm=Math.round(osrmData.routes[0].distance/1000);
+        const durationMin=Math.round(osrmData.routes[0].duration/60);
+        const hrs=Math.floor(durationMin/60);
+        const mins=durationMin%60;
+        const timeStr=hrs>0?`${hrs}h ${mins}m`:`${mins}m`;
+
+        // Price suggestions: budget / standard / premium
+        const budgetPrice=Math.round(distanceKm*1.5);
+        const stdPrice=Math.round(distanceKm*2.5);
+        const premPrice=Math.round(distanceKm*4);
+
+        const sug=document.getElementById('price-suggestion');
+        sug.classList.add('show');
+        document.getElementById('ps-details').textContent=`Distance: ~${distanceKm} km • Est. time: ${timeStr}`;
+        document.getElementById('ps-btns').innerHTML=`
+          <button class="ps-btn" onclick="setPrice(${budgetPrice})">Budget ₹${budgetPrice}</button>
+          <button class="ps-btn" onclick="setPrice(${stdPrice})">Standard ₹${stdPrice}</button>
+          <button class="ps-btn" onclick="setPrice(${premPrice})">Premium ₹${premPrice}</button>`;
+        document.getElementById('btn-preview-map').style.display='block';
+      }
+    }catch(e){console.log('Distance calc error',e);}
+  },600);
+}
+
+function setPrice(price){document.getElementById('p-price').value=price;}
+window.setPrice=setPrice;
+
+// ── FEATURE 4: Map with route ─────────────────────────────────
+async function openRouteMap(fromCity,toCity,rideId){
+  document.getElementById('map-title').textContent=fromCity+' → '+toCity;
+  document.getElementById('map-subtitle').textContent='Tap the map to explore the route';
+  document.getElementById('map-distance').textContent='Calculating...';
+  document.getElementById('map-time').textContent='...';
+  document.getElementById('map-price').textContent='...';
+  document.getElementById('map-overlay').classList.add('open');
+
+  await new Promise(r=>setTimeout(r,100));
+  initMap();
+
+  try{
+    const fr=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(fromCity)}&countrycodes=in&limit=1&format=json`);
+    const fd=await fr.json();
+    const tr=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(toCity)}&countrycodes=in&limit=1&format=json`);
+    const td=await tr.json();
+    if(!fd[0]||!td[0])return;
+
+    const fLat=parseFloat(fd[0].lat),fLng=parseFloat(fd[0].lon);
+    const tLat=parseFloat(td[0].lat),tLng=parseFloat(td[0].lon);
+
+    // Draw markers
+    L.marker([fLat,fLng]).addTo(routeMap).bindPopup('From: '+fromCity).openPopup();
+    L.marker([tLat,tLng]).addTo(routeMap).bindPopup('To: '+toCity);
+
+    // Get route from OSRM
+    const rr=await fetch(`https://router.project-osrm.org/route/v1/driving/${fLng},${fLat};${tLng},${tLat}?overview=full&geometries=geojson`);
+    const rd=await rr.json();
+    if(rd.routes&&rd.routes[0]){
+      const dist=Math.round(rd.routes[0].distance/1000);
+      const dur=Math.round(rd.routes[0].duration/60);
+      const hrs=Math.floor(dur/60);
+      const mins=dur%60;
+      document.getElementById('map-distance').textContent=dist+' km';
+      document.getElementById('map-time').textContent=hrs>0?hrs+'h '+mins+'m':mins+' min';
+      document.getElementById('map-price').textContent='₹'+Math.round(dist*2.5);
+
+      const coords=rd.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);
+      L.polyline(coords,{color:'#f5a623',weight:4,opacity:.8}).addTo(routeMap);
+      routeMap.fitBounds(L.polyline(coords).getBounds(),{padding:[30,30]});
+    }
+
+    // Live tracking button
+    if(rideId){
+      document.getElementById('live-bar').style.display='flex';
+    }
+  }catch(e){console.log('Map error',e);}
+}
+
+async function previewRouteMap(){
+  const from=document.getElementById('p-from').value.trim();
+  const to=document.getElementById('p-to').value.trim();
+  if(!from||!to)return showAlert('post-alert','Enter both cities first.','error');
+  openRouteMap(from,to,null);
+}
+
+function initMap(){
+  if(routeMap){routeMap.remove();routeMap=null;}
+  routeMap=L.map('route-map').setView([17.385,78.487],6);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© OpenStreetMap',maxZoom:18
+  }).addTo(routeMap);
+}
+
+function closeMap(){
+  document.getElementById('map-overlay').classList.remove('open');
+  stopTracking();
+}
+
+function stopTracking(){
+  if(trackingWatcher){navigator.geolocation.clearWatch(trackingWatcher);trackingWatcher=null;}
+  document.getElementById('live-bar').style.display='none';
+}
+
+function startLiveTracking(){
+  if(!navigator.geolocation)return;
+  trackingWatcher=navigator.geolocation.watchPosition(pos=>{
+    const{latitude:lat,longitude:lng}=pos.coords;
+    if(trackingMarker){trackingMarker.setLatLng([lat,lng]);}
+    else{trackingMarker=L.marker([lat,lng],{icon:L.divIcon({html:'<div style="background:#ff6b6b;width:16px;height:16px;border-radius:50%;border:3px solid #fff;"></div>',iconSize:[16,16]})}).addTo(routeMap);}
+    routeMap.setView([lat,lng],13);
+  });
+}
+window.startLiveTracking=startLiveTracking;
+
+// ── Search ────────────────────────────────────────────────────
+async function doSearch(){
+  const grid=document.getElementById('rides-grid');
+  grid.innerHTML='<div class="loading-state">🔍 Searching rides...</div>';
+  hideAlert('search-alert');
+  // Load user booked ride IDs to mark cards
+  if(isLoggedIn()&&!window._myBookedRideIds){
+    try{
+      const{bookings}=await myBookedRides();
+      window._myBookedRideIds=new Set((bookings||[]).map(b=>b.ride_id));
+    }catch(_){}
+  }
+  const{rides,error}=await searchRides({
+    from_city:document.getElementById('s-from').value,
+    to_city:document.getElementById('s-to').value,
+    date:document.getElementById('s-date').value,
+    vehicle_type:document.getElementById('s-vehicle').value,
+  });
+  if(error){showAlert('search-alert',error,'error');grid.innerHTML='';return;}
+  if(!rides||!rides.length){
+    grid.innerHTML='<div class="empty-state"><div class="empty-icon">🏍️</div><div>No rides found.<br><small>Try different dates or post one!</small></div></div>';return;
+  }
+  const me=currentUser.get();
+  grid.innerHTML=rides.map(r=>{
+    const initials=(r.driver_name||'U').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const dept=new Date(r.departure_time).toLocaleString('en-IN',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    const isMyRide=me&&r.driver_id===me.id;
+    const isFull=parseInt(r.available_seats)===0||r.status==='full';
+    const total=parseInt(r.total_seats||1);
+    const avail=parseInt(r.available_seats||0);
+    const booked=total-avail;
+    const pct=Math.round((booked/total)*100);
+    const seatBar=r.vehicle_type==='car'?`
+      <div style="margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;font-size:.73rem;color:var(--text2);margin-bottom:4px;"><span>${booked} booked</span><span>${avail} of ${total} left</span></div>
+        <div class="seats-bar"><div class="seats-fill${isFull?' full':''}" style="width:${pct}%"></div></div>
+      </div>`:'';
+    const alreadyBooked=window._myBookedRideIds&&window._myBookedRideIds.has(r.id);
+    const bookBtn=isMyRide
+      ?`<button class="btn-myrride">Your ride</button>`
+      :alreadyBooked?`<button class="btn-myrride" style="background:rgba(61,220,132,.15);color:var(--green);border:1px solid rgba(61,220,132,.3);">Already booked ✓</button>`
+      :isFull?`<button class="btn-full">Fully booked</button>`
+      :r.vehicle_type==='car'&&avail>1
+        ?`<button class="btn-connect" onclick="showSeatPicker('${r.id}',${avail},'${r.driver_id}','${r.driver_name||""}',this)">Book →</button>`
+        :`<button class="btn-connect" onclick="doBookRide('${r.id}',1,'${r.driver_id}','${r.driver_name||""}',this)">Book →</button>`;
+    return`<div class="ride-card${isFull?' booked-card':''}">
+      <div class="ride-top">
+        <div class="ride-user">
+          <div class="ride-avatar">${initials}</div>
+          <div><div class="ride-name">${r.driver_name||'Rider'}</div><div class="ride-rating">⭐ ${r.driver_rating||'0.0'}${r.driver_verified?' 🛡️':''}</div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+          <div class="ride-type ${r.vehicle_type==='bike'?'type-bike':'type-car'}">${r.vehicle_type==='bike'?'🏍️ Bike':'🚗 Car'}</div>
+        </div>
+      </div>
+      <div class="route-point"><div class="route-dot dot-from"></div><div><div class="route-label">From</div><div class="route-val">${r.from_city}</div></div></div>
+      <div class="route-line" style="margin-left:4px"></div>
+      <div class="route-point"><div class="route-dot dot-to"></div><div><div class="route-label">To</div><div class="route-val">${r.to_city}</div></div></div>
+      <div class="ride-meta">
+        <div class="meta-item">📅 <span>${dept}</span></div>
+        <div class="meta-item">💺 <span>${avail} seat${avail!==1?'s':''} left</span></div>
+        ${isFull?'<span class="badge badge-red">🔴 Full</span>':''}
+      </div>
+      ${seatBar}
+      <div class="ride-footer">
+        <div class="ride-price">₹${r.price_per_seat} <small>/ person</small></div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button class="map-btn-small" onclick="openRouteMap('${r.from_city}','${r.to_city}','${r.id}')">🗺️ Map</button>
+          ${bookBtn}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Seat picker for car rides with multiple seats
+function showSeatPicker(rideId, maxSeats, driverId, driverName, btn){
+  window._pendingDriverId=driverId;
+  window._pendingDriverName=driverName;
+  if(!isLoggedIn())return showAlert('search-alert','Please log in to book a ride.','error');
+  // Build options
+  let opts='';
+  for(let i=1;i<=maxSeats;i++) opts+=`<option value="${i}">${i} Seat${i>1?'s':''}</option>`;
+  const picker=document.createElement('div');
+  picker.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:600;display:flex;align-items:center;justify-content:center;';
+  picker.innerHTML=`<div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;width:320px;">
+    <div style="font-family:Syne,sans-serif;font-weight:800;font-size:1.1rem;margin-bottom:6px;">How many seats?</div>
+    <div style="color:var(--text2);font-size:.84rem;margin-bottom:18px;">Select the number of seats you need</div>
+    <select id="seat-picker-sel" style="width:100%;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.9rem;outline:none;margin-bottom:16px;">${opts}</select>
+    <div style="display:flex;gap:10px;">
+      <button id="seat-confirm-btn" onclick="confirmSeatBook('${rideId}','${driverId}')" style="flex:1;padding:12px;background:var(--accent);color:#000;border:none;border-radius:10px;font-family:Syne,sans-serif;font-weight:700;cursor:pointer;">Confirm Booking</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="padding:12px 16px;background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:10px;cursor:pointer;">Cancel</button>
+    </div>
+  </div>`;
+  document.body.appendChild(picker);
+  window._pendingBookBtn=btn;
+}
+window.showSeatPicker=showSeatPicker;
+
+async function confirmSeatBook(rideId){
+  const seats=parseInt(document.getElementById('seat-picker-sel').value)||1;
+  document.querySelector('[style*="fixed"][style*="rgba"]').remove();
+  await doBookRide(rideId, seats, window._pendingDriverId, window._pendingDriverName, window._pendingBookBtn);
+}
+window.confirmSeatBook=confirmSeatBook;
+
+async function doBookRide(rideId, seats=1, driverId='', driverName='', btn){
+  if(!isLoggedIn())return showAlert('search-alert','Please log in to book a ride.','error');
+  if(btn){btn.textContent='Booking...';btn.disabled=true;}
+  const{booking,error}=await bookRide(rideId, seats);
+  if(error){
+    if(btn){btn.textContent='Book →';btn.disabled=false;}
+    showAlert('search-alert',error,'error');return;
+  }
+  if(btn){btn.textContent='Booked ✓';btn.style.background='var(--green)';btn.style.color='#000';}
+  // FIX 1: Auto-send first message so chat shows driver name immediately
+  const me=currentUser.get();
+  if(me&&booking){
+    if(driverId) {
+      await sendMessage(driverId, `Hi ${driverName}! I just booked ${seats} seat${seats>1?'s':''} on your ride. Looking forward to it! 🙌`, rideId);
+    }
+  }
+  // Track this ride as booked so card shows "Already booked"
+  if(!window._myBookedRideIds) window._myBookedRideIds=new Set();
+  window._myBookedRideIds.add(rideId);
+  showAlert('search-alert',`🎉 Booked ${seats} seat${seats>1?'s':''}! Check Chat to message the driver.`,'success');
+  setTimeout(doSearch,1500);
+}
+
+// Vehicle selection
+function selectVeh(v){
+  selectedVehicle=v;
+  document.getElementById('veh-bike').classList.toggle('active',v==='bike');
+  document.getElementById('veh-car').classList.toggle('active',v==='car');
+  const seatsEl=document.getElementById('p-seats');
+  seatsEl.innerHTML='';
+  if(v==='bike'){
+    seatsEl.innerHTML='<option value="1">1 Seat</option>';
+    document.getElementById('seats-hint').textContent='🏍️ Bikes carry 1 passenger';
+  }else{
+    [1,2,3,4,5,6,7].forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n+' Seat'+(n>1?'s':'');seatsEl.appendChild(o);});
+    seatsEl.value='4';
+    document.getElementById('seats-hint').textContent='🚗 Select based on your car model';
+  }
+}
+
+async function doPostRide(){
+  if(!isLoggedIn())return showAlert('post-alert','Please log in to post a ride.','error');
+  const btn=document.getElementById('btn-post-ride');
+  const from=document.getElementById('p-from').value.trim();
+  const to=document.getElementById('p-to').value.trim();
+  const date=document.getElementById('p-date').value;
+  const time=document.getElementById('p-time').value;
+  const seats=document.getElementById('p-seats').value;
+  const price=document.getElementById('p-price').value;
+  if(!from||!to||!date||!time||!price)return showAlert('post-alert','Please fill in all required fields.','error');
+  setLoading(btn,true,'Post Ride →');
+  const{ride,error}=await postRide({
+    from_city:from,to_city:to,
+    departure_time:`${date}T${time}:00`,
+    vehicle_type:selectedVehicle,
+    total_seats:parseInt(seats),
+    price_per_seat:parseFloat(price),
+    pickup_details:document.getElementById('p-pickup').value.trim()||null,
+    notes:document.getElementById('p-notes').value.trim()||null,
+  });
+  setLoading(btn,false,'Post Ride →');
+  if(error)return showAlert('post-alert',error,'error');
+  showAlert('post-alert','✅ Ride posted! '+from+' → '+to+' on '+date,'success');
+  ['p-from','p-to','p-price','p-pickup','p-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('price-suggestion').classList.remove('show');
+  document.getElementById('btn-preview-map').style.display='none';
+  fromCoords=null;toCoords=null;
+  loadMyRides();
+}
+
+async function loadMyRides(){
+  if(!isLoggedIn())return;
+  const{rides}=await myPostedRides();
+  const el=document.getElementById('my-rides-list');
+  if(!rides||!rides.length){el.innerHTML='<div style="color:var(--text2);font-size:.84rem;">No rides posted yet.</div>';return;}
+  el.innerHTML=rides.slice(0,5).map(r=>{
+    const dept=new Date(r.departure_time).toLocaleDateString('en-IN',{month:'short',day:'numeric'});
+    const booked=parseInt(r.confirmed_bookings||0);
+    const total=parseInt(r.total_seats||1);
+    const avail=total-booked;
+    const sc=r.status==='active'?'badge-green':r.status==='full'?'badge-red':'badge-yellow';
+    return`<div class="my-ride-item">
+      <div class="my-ride-header">
+        <div><div style="font-weight:600;font-size:.88rem;">${r.from_city} → ${r.to_city}</div>
+        <div style="color:var(--text2);font-size:.76rem;">${dept} · ₹${r.price_per_seat}/seat</div></div>
+        <span class="badge ${sc}">${r.status}</span>
+      </div>
+      <div class="booking-info">
+        <div class="booking-row"><span style="color:var(--text2);">Bookings</span><span style="font-weight:600;color:${booked>0?'var(--green)':'var(--muted)'};">${booked} booked</span></div>
+        <div class="booking-row"><span style="color:var(--text2);">Seats left</span><span style="font-weight:600;">${avail} of ${total}</span></div>
+        ${booked===0?'<div style="color:var(--text2);font-size:.75rem;margin-top:3px;">⏳ Waiting for bookings...</div>':''}
+        ${r.status==='full'?'<div style="color:var(--green);font-size:.75rem;margin-top:3px;">✅ All seats booked!</div>':''}
+      </div>
+      <button class="map-btn-small" onclick="openRouteMap('${r.from_city}','${r.to_city}','${r.id}')">🗺️ View Route on Map</button>
+    </div>`;
+  }).join('');
+}
+
+// Chat
+async function loadConversations(){
+  if(!isLoggedIn())return;
+  const{conversations}=await getConversations();
+  const el=document.getElementById('conversations-list');
+  if(!conversations||!conversations.length){el.innerHTML='<div style="padding:16px;color:var(--text2);font-size:.84rem;">No conversations yet.</div>';return;}
+  el.innerHTML=conversations.map(c=>{
+    const initials=c.partner_name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    return`<div class="chat-item" onclick="openConversation('${c.partner_id}','${c.partner_name}')">
+      <div class="chat-av" style="background:linear-gradient(135deg,var(--accent),var(--accent2))">${initials}</div>
+      <div class="chat-meta"><div class="chat-name">${c.partner_name}</div><div class="chat-preview">${c.last_message||''}</div></div>
+      ${c.unread_count>0?`<div class="unread-badge">${c.unread_count}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+async function openConversation(partnerId,partnerName){
+  activeChatPartner=partnerId;
+  document.querySelectorAll('.chat-item').forEach(el=>el.classList.remove('active'));
+  event?.target?.closest('.chat-item')?.classList.add('active');
+  const initials=partnerName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('chat-header').innerHTML=`
+    <div class="chat-av" style="background:linear-gradient(135deg,var(--accent),var(--accent2));width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;">${initials}</div>
+    <div><div style="font-weight:600;">${partnerName}</div><div style="display:flex;align-items:center;gap:5px;font-size:.76rem;color:var(--text2);"><div class="status-dot"></div>Active</div></div>`;
+  document.getElementById('chat-input').disabled=false;
+  document.getElementById('btn-send-msg').disabled=false;
+  const{messages}=await getMessages(partnerId);
+  renderMessages(messages);
+  Socket.markRead(partnerId);
+}
+
+function renderMessages(messages){
+  const me=currentUser.get();
+  const el=document.getElementById('chat-messages');
+  if(!messages||!messages.length){el.innerHTML='<div class="empty-state"><div>Say hello! 👋</div></div>';return;}
+  el.innerHTML=messages.map(m=>{
+    const isSent=m.sender_id===me?.id;
+    const initials=(m.sender_name||'U').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const time=new Date(m.created_at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    return`<div class="msg ${isSent?'sent':'recv'}">
+      <div class="msg-av" style="background:${isSent?'linear-gradient(135deg,var(--accent),var(--accent2))':'linear-gradient(135deg,#4e9eff,#3ddc84)'}">${initials}</div>
+      <div><div class="msg-bubble">${m.content}</div><div class="msg-time">${time}</div></div>
+    </div>`;
+  }).join('');
+  el.scrollTop=el.scrollHeight;
+}
+
+async function doSendMessage(){
+  const input=document.getElementById('chat-input');
+  const text=input.value.trim();
+  if(!text||!activeChatPartner)return;
+  input.value='';
+  if(Socket.isConnected()){Socket.sendChatMessage(activeChatPartner,text);}
+  else{await sendMessage(activeChatPartner,text);const{messages}=await getMessages(activeChatPartner);renderMessages(messages);}
+}
+
+function handleChatKey(e){
+  if(e.key==='Enter'){doSendMessage();return;}
+  if(activeChatPartner){Socket.sendTyping(activeChatPartner,true);clearTimeout(typingTimeout);typingTimeout=setTimeout(()=>Socket.sendTyping(activeChatPartner,false),1500);}
+}
+
+function setupSocketListeners(){
+  Socket.on('chat:message',(msg)=>{
+    if(msg.sender_id===activeChatPartner||msg.receiver_id===activeChatPartner){
+      getMessages(activeChatPartner).then(({messages})=>renderMessages(messages));
+    }
+    loadConversations();
+  });
+  Socket.on('chat:typing',({senderId,isTyping})=>{
+    if(senderId!==activeChatPartner)return;
+    document.getElementById('typing-indicator').textContent=isTyping?'typing...':'';
+  });
+}
+
+// Wallet
+async function loadWallet(){
+  if(!isLoggedIn())return;
+  const user=currentUser.get();
+  document.getElementById('wallet-user').textContent=user?.name||'';
+  const{wallet}=await getWallet();
+  if(wallet)document.getElementById('wallet-balance').textContent='₹'+parseFloat(wallet.wallet_balance).toFixed(2);
+  const{transactions}=await getTransactions();
+  const list=document.getElementById('tx-list');
+  if(!transactions||!transactions.length){list.innerHTML='<div style="padding:20px;color:var(--text2);">No transactions yet.</div>';return;}
+  list.innerHTML=transactions.map(t=>{
+    const isCredit=t.amount>0;
+    const date=new Date(t.created_at).toLocaleDateString('en-IN',{month:'short',day:'numeric',year:'numeric'});
+    return`<div class="tx-item">
+      <div class="tx-icon" style="background:${isCredit?'rgba(61,220,132,.15)':'rgba(255,107,107,.15)'}">${isCredit?'💰':'💸'}</div>
+      <div class="tx-info"><div class="tx-label">${t.description||t.type}</div><div class="tx-date">${date}</div></div>
+      <div class="tx-amount" style="color:${isCredit?'var(--green)':'var(--accent2)'}">
+        ${isCredit?'+':''}₹${Math.abs(t.amount).toFixed(2)}</div>
+    </div>`;
+  }).join('');
+}
+
+function openPayModal(){
+  if(!isLoggedIn())return showAlert('payments-alert','Please log in first.','error');
+  document.getElementById('payment-modal').classList.add('open');
+  document.getElementById('modal-amount').value='';
+  document.getElementById('modal-amount-preview').textContent='0';
+  hideAlert('pay-modal-alert');
+}
+function closePayModal(){document.getElementById('payment-modal').classList.remove('open');}
+function selectPayMethod(m){
+  selectedPayMethod=m;
+  document.querySelectorAll('.pay-method').forEach(el=>el.classList.remove('selected'));
+  document.getElementById('pm-'+m).classList.add('selected');
+  document.getElementById('upi-input-group').style.display=m==='card'?'none':'block';
+}
+function updateModalAmount(){document.getElementById('modal-amount-preview').textContent=document.getElementById('modal-amount').value||'0';}
+
+async function doPayment(){
+  const amount=parseFloat(document.getElementById('modal-amount').value);
+  if(!amount||amount<1)return showAlert('pay-modal-alert','Please enter a valid amount.','error');
+  const alertEl=document.getElementById('pay-modal-alert');
+  const btn=document.getElementById('btn-pay-now');
+  btn.disabled=true;
+  const steps=['Connecting to '+selectedPayMethod+'...','Verifying payment...','Waiting for approval...','Payment approved! ✓'];
+  alertEl.className='alert show alert-info';
+  for(const s of steps){alertEl.textContent=s;await new Promise(r=>setTimeout(r,900));}
+  const{new_balance,error}=await topUpWallet(amount);
+  btn.disabled=false;
+  if(error)return showAlert('pay-modal-alert',error,'error');
+  closePayModal();
+  document.getElementById('wallet-balance').textContent='₹'+parseFloat(new_balance).toFixed(2);
+  showAlert('payments-alert','✅ ₹'+amount+' added via '+selectedPayMethod+'! New balance: ₹'+parseFloat(new_balance).toFixed(2),'success');
+  loadWallet();
+}
+
+function toggleWithdraw(){const f=document.getElementById('withdraw-form');f.style.display=f.style.display==='block'?'none':'block';}
+async function doWithdraw(){
+  const amount=parseFloat(document.getElementById('withdraw-amount').value);
+  const upi=document.getElementById('withdraw-upi').value.trim();
+  if(!amount||amount<50)return showAlert('withdraw-alert','Minimum withdrawal is ₹50.','error');
+  if(!upi)return showAlert('withdraw-alert','Please enter your UPI ID.','error');
+  const{new_balance,error}=await withdrawFromWallet(amount,upi);
+  if(error)return showAlert('withdraw-alert',error,'error');
+  document.getElementById('wallet-balance').textContent='₹'+parseFloat(new_balance).toFixed(2);
+  document.getElementById('withdraw-amount').value='';
+  document.getElementById('withdraw-upi').value='';
+  toggleWithdraw();
+  showAlert('payments-alert','✅ ₹'+amount+' withdrawal started to '+upi+'. Arrives in 24 hours.','success');
+  loadWallet();
+}
+
+
+
+// ══════════════════════════════════════════════════════
+// NAVIGATION UPDATE - add new screens
+// ══════════════════════════════════════════════════════
+const ALL_SCREENS=['auth','search','post','booked','chat','history','savings','payments'];
+const ALL_TABS=['auth','search','post','booked','chat','history','savings','payments'];
+
+function goto(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const scr=document.getElementById('screen-'+id);
+  if(scr) scr.classList.add('active');
+  const ALL=['auth','search','post','booked','chat','history','savings','payments'];
+  document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',ALL[i]===id));
+  if(id==='search')   doSearch();
+  if(id==='post')     loadMyRides();
+  if(id==='chat')     loadConversations();
+  if(id==='payments') loadWallet();
+  if(id==='booked')   loadBookedRides();
+  if(id==='history')  { histTab='rider'; loadHistory('rider'); }
+  if(id==='savings')  loadSavings();
+}
+
+// ══════════════════════════════════════════════════════
+// BOOKED RIDES
+// ══════════════════════════════════════════════════════
+async function loadBookedRides(){
+  if(!isLoggedIn()){document.getElementById('booked-list').innerHTML='<div class="empty-state"><div class="empty-icon">🔒</div><div>Please log in to see your bookings</div></div>';return;}
+  document.getElementById('booked-list').innerHTML='<div class="loading-state">Loading bookings...</div>';
+  const{bookings,error}=await myBookedRides();
+  const el=document.getElementById('booked-list');
+  if(error){el.innerHTML='<div style="color:var(--accent2);padding:16px;">'+error+'</div>';return;}
+  if(!bookings||!bookings.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">🎫</div><div>No bookings yet<br><small>Find a ride and book a seat!</small></div></div>';return;
+  }
+  el.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;">'+
+  bookings.map(b=>{
+    const dept=new Date(b.departure_time).toLocaleString('en-IN',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    const statusColor=b.status==='confirmed'?'var(--green)':b.status==='completed'?'var(--blue)':'var(--accent2)';
+    const past=new Date(b.departure_time)<new Date();
+    return`<div class="ride-card">
+      <div class="ride-top">
+        <div class="ride-user">
+          <div class="ride-avatar" style="background:linear-gradient(135deg,var(--blue),var(--green))">${(b.driver_name||'D').split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
+          <div><div class="ride-name">${b.driver_name||'Driver'}</div><div class="ride-rating">⭐ ${b.driver_rating||'0.0'}</div></div>
+        </div>
+        <span class="badge" style="background:${statusColor}22;color:${statusColor};">${b.status}</span>
+      </div>
+      <div class="route-point"><div class="route-dot dot-from"></div><div><div class="route-label">From</div><div class="route-val">${b.from_city}</div></div></div>
+      <div class="route-line" style="margin-left:4px"></div>
+      <div class="route-point"><div class="route-dot dot-to"></div><div><div class="route-label">To</div><div class="route-val">${b.to_city}</div></div></div>
+      <div class="ride-meta">
+        <div class="meta-item">📅 <span>${dept}</span></div>
+        <div class="meta-item">💺 <span>${b.seats} seat${b.seats>1?'s':''}</span></div>
+        <div class="meta-item">💰 <span>₹${b.price_per_seat}/seat</span></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="map-btn-small" onclick="openRouteMap('${b.from_city}','${b.to_city}','')">🗺️ Map</button>
+        <button class="map-btn-small" onclick="openChatWith('${b.driver_id}','${b.driver_name||''}')" style="color:var(--green);border-color:rgba(61,220,132,.3);">💬 Chat with Driver</button>
+        ${past&&b.status==='confirmed'?`<button class="map-btn-small" onclick="openRateModal('${b.ride_id}','${b.driver_name||''}')" style="color:var(--accent);border-color:rgba(245,166,35,.3);">⭐ Rate</button>`:''}
+      </div>
+    </div>`;
+  }).join('')+'</div>';
+}
+
+// ══════════════════════════════════════════════════════
+// HISTORY
+// ══════════════════════════════════════════════════════
+let histTab='rider';
+async function switchHistTab(tab){
+  histTab=tab;
+  document.getElementById('hist-tab-rider').style.background=tab==='rider'?'var(--accent)':'transparent';
+  document.getElementById('hist-tab-rider').style.color=tab==='rider'?'#000':'var(--muted)';
+  document.getElementById('hist-tab-driver').style.background=tab==='driver'?'var(--accent)':'transparent';
+  document.getElementById('hist-tab-driver').style.color=tab==='driver'?'#000':'var(--muted)';
+  await loadHistory(tab);
+}
+
+async function loadHistory(tab){
+  if(!isLoggedIn())return;
+  const el=document.getElementById('history-list');
+  el.innerHTML='<div class="loading-state">Loading...</div>';
+  let items=[];
+  if(tab==='rider'){
+    const{bookings}=await myBookedRides();
+    items=(bookings||[]).map(b=>({
+      from:b.from_city,to:b.to_city,date:b.departure_time,
+      status:b.ride_status||b.status,vehicle:b.vehicle_type||'bike',
+      price:b.price_per_seat,seats:b.seats,other:b.driver_name,role:'Rider',rideId:b.ride_id
+    }));
+  }else{
+    const{rides}=await myPostedRides();
+    items=(rides||[]).map(r=>({
+      from:r.from_city,to:r.to_city,date:r.departure_time,
+      status:r.status,vehicle:r.vehicle_type,
+      price:r.price_per_seat,seats:r.total_seats,other:r.confirmed_bookings+' booked',role:'Driver',rideId:r.id
+    }));
+  }
+  if(!items.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><div>No rides yet</div></div>';return;}
+  el.innerHTML='<div style="display:flex;flex-direction:column;gap:10px;">'+items.map(r=>{
+    const d=new Date(r.date).toLocaleDateString('en-IN',{month:'short',day:'numeric',year:'numeric'});
+    const sc=r.status==='active'?'badge-green':r.status==='completed'?'badge-blue':r.status==='cancelled'?'badge-red':'badge-yellow';
+    return`<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px;">
+      <div style="width:42px;height:42px;border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">${r.vehicle==='bike'?'🏍️':'🚗'}</div>
+      <div style="flex:1;">
+        <div style="font-weight:600;font-size:.9rem;">${r.from} → ${r.to}</div>
+        <div style="color:var(--text2);font-size:.78rem;">${d} · ${r.role} · ${r.other}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-family:Syne,sans-serif;font-weight:700;color:var(--accent);">₹${r.price}</div>
+        <span class="badge ${sc}" style="font-size:.68rem;">${r.status}</span>
+      </div>
+    </div>`;
+  }).join('')+'</div>';
+}
+
+// ══════════════════════════════════════════════════════
+// SAVINGS DASHBOARD
+// ══════════════════════════════════════════════════════
+async function loadSavings(){
+  if(!isLoggedIn()){document.getElementById('savings-stats').innerHTML='<div style="color:var(--text2);">Please log in</div>';return;}
+  const{bookings}=await myBookedRides();
+  const{rides}=await myPostedRides();
+  const allBookings=bookings||[];
+  const allRides=rides||[];
+  const totalRides=allBookings.length+allRides.length;
+  const moneySaved=allBookings.reduce((s,b)=>s+(parseFloat(b.price_per_seat||0)*parseInt(b.seats||1)),0);
+  const moneyEarned=allRides.reduce((s,r)=>s+(parseFloat(r.price_per_seat||0)*parseInt(r.confirmed_bookings||0)),0);
+  const co2=Math.round(totalRides*2.3);
+  const statsEl=document.getElementById('savings-stats');
+  statsEl.innerHTML=[
+    {icon:'💰',val:'₹'+moneySaved.toFixed(0),label:'Money saved as rider'},
+    {icon:'🤑',val:'₹'+moneyEarned.toFixed(0),label:'Money earned as driver'},
+    {icon:'🏍️',val:totalRides,label:'Total rides'},
+    {icon:'🌿',val:co2+' kg',label:'CO₂ reduced'},
+  ].map(s=>`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;">
+    <div style="font-size:2rem;margin-bottom:6px;">${s.icon}</div>
+    <div style="font-family:Syne,sans-serif;font-size:1.6rem;font-weight:800;color:var(--accent);">${s.val}</div>
+    <div style="color:var(--text2);font-size:.8rem;margin-top:4px;">${s.label}</div>
+  </div>`).join('');
+  // Motivational message
+  const msgEl=document.getElementById('savings-rides');
+  const msg=totalRides===0?'Book your first ride to start saving money and reducing carbon! 🌍'
+    :totalRides<5?`Great start! You have taken ${totalRides} ride${totalRides>1?'s':''}. Keep going! 🚀`
+    :`Amazing! ${totalRides} rides completed. You are a true BuddyRide champion! 🏆`;
+  msgEl.innerHTML=`<div style="background:rgba(61,220,132,.08);border:1px solid rgba(61,220,132,.2);border-radius:14px;padding:20px;text-align:center;font-size:.92rem;color:var(--green);">${msg}</div>`;
+}
+
+// ══════════════════════════════════════════════════════
+// NOTIFICATIONS
+// ══════════════════════════════════════════════════════
+window.toggleNotifPanel=toggleNotifPanel;
+window.markNotifsRead=markNotifsRead;
+function toggleNotifPanel(){
+  const p=document.getElementById('notif-panel');
+  const isOpen=p.style.display==='block';
+  p.style.display=isOpen?'none':'block';
+  if(!isOpen)loadNotifications();
+}
+async function loadNotifications(){
+  const el=document.getElementById('notif-list');
+  try{
+    const r=await fetch('https://buddyride-backend-production.up.railway.app/api/notifications',
+      {headers:{Authorization:'Bearer '+localStorage.getItem('br_access')}});
+    const data=await r.json();
+    const notifs=data.notifications||[];
+    document.getElementById('notif-dot').style.display=data.unread>0?'block':'none';
+    if(!notifs.length){el.innerHTML='<div style="padding:16px;color:var(--text2);font-size:.84rem;">No notifications yet</div>';return;}
+    el.innerHTML=notifs.map(n=>`
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);${n.is_read?'':'background:rgba(245,166,35,.04);'}display:flex;gap:10px;cursor:pointer;">
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(78,158,255,.15);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;">🔔</div>
+        <div><div style="font-size:.84rem;font-weight:600;">${n.title}</div><div style="font-size:.76rem;color:var(--text2);">${n.body||''}</div></div>
+      </div>`).join('');
+  }catch(e){el.innerHTML='<div style="padding:16px;color:var(--text2);font-size:.84rem;">Could not load</div>';}
+}
+async function markNotifsRead(){
+  await fetch('https://buddyride-backend-production.up.railway.app/api/notifications/read',
+    {method:'PATCH',headers:{Authorization:'Bearer '+localStorage.getItem('br_access')}});
+  document.getElementById('notif-dot').style.display='none';
+  loadNotifications();
+}
+
+// ══════════════════════════════════════════════════════
+// RATING MODAL
+// ══════════════════════════════════════════════════════
+let _rateRideId='',_rateRatedId='',_rateStars=0;
+window.openRateModal=openRateModal;
+window.closeRateModal=closeRateModal;
+window.pickStar=pickStar;
+window.submitRating=submitRating;
+
+function openRateModal(rideId, personName){
+  _rateRideId=rideId;
+  _rateStars=0;
+  document.getElementById('rate-rider-name').textContent='Rate your experience with '+personName;
+  document.getElementById('rate-ride-id').value=rideId;
+  document.getElementById('rate-review').value='';
+  document.querySelectorAll('.star-pick').forEach(s=>s.style.color='var(--border)');
+  document.getElementById('rate-modal').classList.add('open');
+}
+function closeRateModal(){document.getElementById('rate-modal').classList.remove('open');}
+function pickStar(n){
+  _rateStars=n;
+  document.getElementById('rate-stars').value=n;
+  document.querySelectorAll('.star-pick').forEach((s,i)=>s.style.color=i<n?'var(--accent)':'var(--border)');
+}
+async function submitRating(){
+  if(!_rateStars)return alert('Please select a star rating');
+  const review=document.getElementById('rate-review').value.trim();
+  try{
+    await fetch('https://buddyride-backend-production.up.railway.app/api/ratings',{
+      method:'POST',
+      headers:{'Content-Type':'application/json',Authorization:'Bearer '+localStorage.getItem('br_access')},
+      body:JSON.stringify({ride_id:_rateRideId,rated_id:document.getElementById('rate-rated-id').value,stars:_rateStars,review})
+    });
+    closeRateModal();
+    showAlert('booked-alert','⭐ Rating submitted! Thank you.','success');
+  }catch(e){closeRateModal();}
+}
+
+// ══════════════════════════════════════════════════════
+// SOS BUTTON
+// ══════════════════════════════════════════════════════
+window.triggerSOS=triggerSOS;
+function triggerSOS(){
+  if(!navigator.geolocation){alert('GPS not available on this device');return;}
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const{latitude:lat,longitude:lng}=pos.coords;
+    const user=currentUser.get();
+    const mapsLink='https://maps.google.com/?q='+lat+','+lng;
+    const msg='🆘 SOS from '+(user?.name||'BuddyRide user')+'! I need help. My location: '+mapsLink;
+    const waLink='https://wa.me/?text='+encodeURIComponent(msg);
+    window.open(waLink,'_blank');
+  },()=>alert('Could not get your location. Please enable GPS.'));
+}
+
+// Show SOS button when on a booked ride
+function showSOSIfOnRide(){
+  const now=new Date();
+  myBookedRides().then(({bookings})=>{
+    const active=(bookings||[]).find(b=>{
+      const dep=new Date(b.departure_time);
+      const diff=(now-dep)/60000;
+      return diff>-30&&diff<240&&b.status==='confirmed';
+    });
+    document.getElementById('sos-btn').style.display=active?'block':'none';
+  }).catch(()=>{});
+}
+
+// ══════════════════════════════════════════════════════
+// TELUGU / HINDI LANGUAGE
+// ══════════════════════════════════════════════════════
+window.setLang=setLang;
+const translations={
+  en:{
+    'find-ride':'Find a Ride 🗺️','find-ride-sub':'Live rides from the database',
+    'post-ride':'Post a Ride 🚀','post-ride-sub':'Offer a seat — saved to the live database',
+    'mybook':'My Bookings 🎫','mybook-sub':'Rides you have booked',
+    'history':'Ride History 📋','history-sub':'All your past rides as driver and rider',
+    'savings':'Your Impact 📊','savings-sub':'See how much you have saved',
+    'chat-title':'Messages 💬','wallet-title':'Wallet 💰',
+    'rate-title':'Rate your ride ⭐','review-label':'Write a review (optional)',
+    'submit-rating':'Submit Rating →',
+  },
+  te:{
+    'find-ride':'రైడ్ వెతకండి 🗺️','find-ride-sub':'డేటాబేస్ నుండి లైవ్ రైడ్‌లు',
+    'post-ride':'రైడ్ పోస్ట్ చేయండి 🚀','post-ride-sub':'సీటు ఆఫర్ చేయండి',
+    'mybook':'నా బుకింగ్‌లు 🎫','mybook-sub':'మీరు బుక్ చేసిన రైడ్‌లు',
+    'history':'రైడ్ చరిత్ర 📋','history-sub':'మీ అన్ని గత రైడ్‌లు',
+    'savings':'మీ ప్రభావం 📊','savings-sub':'మీరు ఎంత ఆదా చేశారో చూడండి',
+    'chat-title':'సందేశాలు 💬','wallet-title':'వాలెట్ 💰',
+    'rate-title':'మీ రైడ్‌ను రేట్ చేయండి ⭐','review-label':'సమీక్ష రాయండి (ఐచ్ఛికం)',
+    'submit-rating':'రేటింగ్ సమర్పించండి →',
+  },
+  hi:{
+    'find-ride':'राइड खोजें 🗺️','find-ride-sub':'डेटाबेस से लाइव राइड',
+    'post-ride':'राइड पोस्ट करें 🚀','post-ride-sub':'सीट ऑफर करें',
+    'mybook':'मेरी बुकिंग 🎫','mybook-sub':'आपकी बुक की गई राइड',
+    'history':'राइड इतिहास 📋','history-sub':'आपकी सभी पिछली राइड',
+    'savings':'आपका प्रभाव 📊','savings-sub':'देखें आपने कितना बचाया',
+    'chat-title':'संदेश 💬','wallet-title':'वॉलेट 💰',
+    'rate-title':'अपनी राइड रेट करें ⭐','review-label':'समीक्षा लिखें (वैकल्पिक)',
+    'submit-rating':'रेटिंग सबमिट करें →',
+  }
+};
+let currentLang='en';
+function setLang(lang){
+  currentLang=lang;
+  ['en','te','hi'].forEach(l=>{
+    const btn=document.getElementById('lang-'+l);
+    if(btn){btn.style.background=l===lang?'var(--accent)':'transparent';btn.style.color=l===lang?'#000':'var(--muted)';}
+  });
+  const t=translations[lang]||translations.en;
+  const setT=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
+  setT('t-find-ride',t['find-ride']);setT('t-find-ride-sub',t['find-ride-sub']);
+  setT('t-post-ride',t['post-ride']);setT('t-post-ride-sub',t['post-ride-sub']);
+  setT('t-mybook',t['mybook']);setT('t-mybook-sub',t['mybook-sub']);
+  setT('t-history',t['history']);setT('t-history-sub',t['history-sub']);
+  setT('t-savings',t['savings']);setT('t-savings-sub',t['savings-sub']);
+  setT('t-rate-title',t['rate-title']);setT('t-review-label',t['review-label']);
+  setT('t-submit-rating',t['submit-rating']);
+}
+
+// ══════════════════════════════════════════════════════
+// EXPOSE ALL FUNCTIONS GLOBALLY
+// ══════════════════════════════════════════════════════
+window.goto=goto;
+window.switchAuth=switchAuth;
+window.doLogin=doLogin;
+window.doRegister=doRegister;
+window.doSearch=doSearch;
+window.doPostRide=doPostRide;
+window.selectVeh=selectVeh;
+window.doSendMessage=doSendMessage;
+window.handleChatKey=handleChatKey;
+window.openConversation=openConversation;
+window.toggleProfileMenu=toggleProfileMenu;
+window.closeProfileMenu=closeProfileMenu;
+window.doLogout=doLogout;
+window.openPayModal=openPayModal;
+window.closePayModal=closePayModal;
+window.doPayment=doPayment;
+window.selectPayMethod=selectPayMethod;
+window.updateModalAmount=updateModalAmount;
+window.toggleWithdraw=toggleWithdraw;
+window.doWithdraw=doWithdraw;
+window.doBookRide=doBookRide;
+window.showSeatPicker=showSeatPicker;
+window.confirmSeatBook=confirmSeatBook;
+window.openRouteMap=openRouteMap;
+window.closeMap=closeMap;
+window.stopTracking=stopTracking;
+window.startLiveTracking=startLiveTracking;
+window.previewRouteMap=previewRouteMap;
+window.autocomplete=autocomplete;
+window.calcDistance=calcDistance;
+window.selectCity=selectCity;
+window.setPrice=setPrice;
+window.loadBookedRides=loadBookedRides;
+window.loadHistory=loadHistory;
+window.switchHistTab=switchHistTab;
+window.loadSavings=loadSavings;
+
+// Auto-check SOS every 5 mins
+if(isLoggedIn()) setInterval(showSOSIfOnRide, 300000);
+
+// Add text IDs to existing section titles
+setTimeout(()=>{
+  const fr=document.querySelector('#screen-search .section-title');
+  if(fr&&!fr.id)fr.id='t-find-ride';
+  const frs=document.querySelector('#screen-search .section-sub');
+  if(frs&&!frs.id)frs.id='t-find-ride-sub';
+  const pr=document.querySelector('#screen-post .section-title');
+  if(pr&&!pr.id)pr.id='t-post-ride';
+},100);
+
+
+function showAlert(id,msg,type){const el=document.getElementById(id);el.textContent=msg;el.className='alert show alert-'+type;setTimeout(()=>el.classList.remove('show'),6000);}
+function hideAlert(id){document.getElementById(id).classList.remove('show');}
+function setLoading(btn,loading,label){btn.disabled=loading;btn.innerHTML=loading?'<span class="spinner"></span>Please wait...':label;}
+</script>
+</body>
+</html>
