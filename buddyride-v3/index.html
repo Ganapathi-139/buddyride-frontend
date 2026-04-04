@@ -4,84 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BuddyRide</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-:root{
-  --bg:#080c14;
-  --surface:#0f1420;
-  --card:#141b28;
-  --card2:#1a2235;
-  --border:#1e2d45;
-  --border2:#243352;
-  --accent:#f5a623;
-  --accent-dim:rgba(245,166,35,.12);
-  --accent2:#ff6b6b;
-  --green:#00d68f;
-  --green-dim:rgba(0,214,143,.1);
-  --blue:#4e9eff;
-  --blue-dim:rgba(78,158,255,.1);
-  --purple:#a78bfa;
-  --text:#e8edf5;
-  --text2:#9ba8bb;
-  --text3:#5c6b80;
-  --radius:14px;
-  --radius-lg:20px;
-  --shadow:0 4px 24px rgba(0,0,0,.4);
-}
+:root{--bg:#0d0f14;--surface:#161920;--card:#1e2230;--border:#2a2f3f;--accent:#f5a623;--accent2:#ff6b6b;--green:#3ddc84;--blue:#4e9eff;--text:#f0f2f7;--muted:#7a8099;--radius:16px;}
 *{margin:0;padding:0;box-sizing:border-box;}
-html{scroll-behavior:smooth;}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;background-image:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(245,166,35,.06),transparent);}
-::selection{background:rgba(245,166,35,.3);}
-::-webkit-scrollbar{width:4px;}
-::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
 .app{display:flex;flex-direction:column;min-height:100vh;}
-nav{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:12px 24px;
-  background:rgba(8,12,20,.92);
-  border-bottom:1px solid var(--border);
-  position:sticky;top:0;z-index:300;
-  backdrop-filter:blur(20px);
-  -webkit-backdrop-filter:blur(20px);
-}
-.logo{
-  font-family:'Syne',sans-serif;font-size:1.35rem;font-weight:800;
-  color:var(--accent);display:flex;align-items:center;gap:8px;flex-shrink:0;
-  letter-spacing:-.5px;
-}
+nav{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:rgba(13,15,20,.97);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:300;backdrop-filter:blur(12px);}
+.logo{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:var(--accent);display:flex;align-items:center;gap:6px;}
 .logo span{color:var(--text);}
-.logo-icon{
-  width:30px;height:30px;border-radius:8px;
-  background:linear-gradient(135deg,var(--accent),#e8860f);
-  display:flex;align-items:center;justify-content:center;
-  font-size:.9rem;
-}
-.nav-tabs{
-  display:flex;gap:1px;
-  overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;
-  flex:1;margin:0 16px;
-  background:var(--surface);
-  border-radius:10px;
-  padding:3px;
-  border:1px solid var(--border);
-}
+.nav-tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;flex-shrink:1;}
 .nav-tabs::-webkit-scrollbar{display:none;}
-.nav-tab{
-  padding:6px 14px;border-radius:8px;border:none;cursor:pointer;
-  font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;
-  background:transparent;color:var(--text2);
-  transition:all .18s;white-space:nowrap;flex-shrink:0;
-  position:relative;
-}
-.nav-tab:hover{color:var(--text);background:rgba(255,255,255,.04);}
-.nav-tab.active{
-  background:var(--card2);color:var(--accent);
-  box-shadow:0 1px 8px rgba(0,0,0,.3);
-}
+.nav-tab{padding:6px 12px;border-radius:30px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;background:transparent;color:var(--muted);transition:all .2s;white-space:nowrap;flex-shrink:0;}
+.nav-tab.active,.nav-tab:hover{background:var(--card);color:var(--text);}
+.nav-tab.active{color:var(--accent);}
 .nav-right{display:flex;align-items:center;gap:10px;position:relative;}
 .notif-btn{width:34px;height:34px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.95rem;position:relative;}
 .notif-dot{position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--accent2);border:2px solid var(--bg);display:none;}
@@ -91,85 +30,40 @@ nav{
 .profile-dropdown.open{display:block;}
 .pd-header{padding:12px 14px;border-bottom:1px solid var(--border);margin-bottom:4px;}
 .pd-name{font-weight:600;font-size:.9rem;}
-.pd-email{color:var(--text2);font-size:.76rem;}
+.pd-email{color:var(--muted);font-size:.76rem;}
 .pd-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:9px;cursor:pointer;font-size:.85rem;transition:background .15s;}
 .pd-item:hover{background:var(--surface);}
 .pd-item-icon{font-size:1rem;width:20px;text-align:center;}
 .pd-divider{height:1px;background:var(--border);margin:4px 0;}
 .pd-logout{color:var(--accent2);}
 .screen{display:none;flex:1;padding:28px 24px;max-width:1100px;margin:0 auto;width:100%;}
-.screen.active{display:block;animation:pageIn .25s ease;}
-@keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.screen.active{display:block;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-.section-title{
-  font-family:'Syne',sans-serif;font-size:1.55rem;font-weight:800;
-  margin-bottom:4px;letter-spacing:-.5px;
-  background:linear-gradient(135deg,var(--text),var(--text2));
-  -webkit-background-clip:text;background-clip:text;
-}
-.section-sub{color:var(--text3);font-size:.88rem;margin-bottom:24px;}
-.card{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:var(--radius-lg);padding:22px;
-  transition:border-color .2s;
-}
-.card:hover{border-color:var(--border2);}
+.screen.active>*{animation:fadeUp .35s ease forwards;}
+.section-title{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;margin-bottom:4px;}
+.section-sub{color:var(--muted);font-size:.9rem;margin-bottom:24px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;}
 .form-group{margin-bottom:14px;position:relative;}
-.form-group label{display:block;font-size:.78rem;color:var(--text2);margin-bottom:5px;}
-.form-group input,.form-group select,.form-group textarea{
-  width:100%;padding:11px 14px;
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:10px;color:var(--text);
-  font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;
-  transition:all .2s;
-}
-.form-group input:focus,.form-group select:focus,.form-group textarea:focus{
-  border-color:var(--accent);
-  background:rgba(245,166,35,.03);
-  box-shadow:0 0 0 3px rgba(245,166,35,.08);
-}
-.form-group label{color:var(--text2)!important;}
+.form-group label{display:block;font-size:.78rem;color:var(--muted);margin-bottom:5px;}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s;}
+.form-group input:focus,.form-group select:focus{border-color:var(--accent);}
 .form-group select option{background:var(--surface);}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.btn-main{
-  padding:13px 24px;
-  background:linear-gradient(135deg,var(--accent),#e8860f);
-  color:#000;border:none;border-radius:12px;
-  font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;
-  cursor:pointer;transition:all .15s;width:100%;
-  box-shadow:0 4px 14px rgba(245,166,35,.3);
-  letter-spacing:.3px;
-}
-.btn-main:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(245,166,35,.4);}
-.btn-main:active{transform:scale(.98);box-shadow:0 2px 8px rgba(245,166,35,.2);}
-.btn-main:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;}
-.btn-outline{
-  padding:10px 20px;background:transparent;
-  color:var(--text2);border:1px solid var(--border);
-  border-radius:10px;font-family:'DM Sans',sans-serif;
-  font-size:.85rem;cursor:pointer;transition:all .18s;
-}
-.btn-outline:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
-.btn-outline:active{transform:scale(.98);}
-.badge{
-  display:inline-flex;align-items:center;gap:4px;
-  padding:3px 10px;border-radius:20px;font-size:.71rem;font-weight:600;
-  letter-spacing:.3px;
-}
-.badge-yellow{background:rgba(245,166,35,.12);color:var(--accent);border:1px solid rgba(245,166,35,.2);}
-.badge-green{background:rgba(0,214,143,.1);color:var(--green);border:1px solid rgba(0,214,143,.2);}
-.badge-blue{background:rgba(78,158,255,.1);color:var(--blue);border:1px solid rgba(78,158,255,.2);}
-.badge-red{background:rgba(255,107,107,.1);color:var(--accent2);border:1px solid rgba(255,107,107,.2);}
-.alert{
-  padding:12px 16px;border-radius:10px;font-size:.85rem;
-  margin-bottom:14px;display:none;
-  animation:slideIn .2s ease;
-}
-@keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-.alert.show{display:flex;align-items:center;gap:8px;}
-.alert-error{background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.25);color:#ff8fa3;}
-.alert-success{background:rgba(0,214,143,.08);border:1px solid rgba(0,214,143,.25);color:#00d68f;}
-.alert-info{background:rgba(78,158,255,.08);border:1px solid rgba(78,158,255,.25);color:#74b9ff;}
+.btn-main{padding:13px 24px;background:var(--accent);color:#000;border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;transition:opacity .2s,transform .1s;width:100%;}
+.btn-main:hover{opacity:.9;}
+.btn-main:disabled{opacity:.5;cursor:not-allowed;}
+.btn-outline{padding:10px 20px;background:transparent;color:var(--text);border:1px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.85rem;cursor:pointer;transition:all .2s;}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600;}
+.badge-yellow{background:rgba(245,166,35,.15);color:var(--accent);}
+.badge-green{background:rgba(61,220,132,.15);color:var(--green);}
+.badge-blue{background:rgba(78,158,255,.15);color:var(--blue);}
+.badge-red{background:rgba(255,107,107,.15);color:var(--accent2);}
+.alert{padding:12px 16px;border-radius:10px;font-size:.85rem;margin-bottom:14px;display:none;}
+.alert.show{display:block;}
+.alert-error{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);color:var(--accent2);}
+.alert-success{background:rgba(61,220,132,.1);border:1px solid rgba(61,220,132,.3);color:var(--green);}
+.alert-info{background:rgba(78,158,255,.1);border:1px solid rgba(78,158,255,.3);color:var(--blue);}
 .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(0,0,0,.3);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px;}
 @keyframes spin{to{transform:rotate(360deg)}}
 
@@ -180,13 +74,13 @@ nav{
 .autocomplete-item:last-child{border-bottom:none;}
 .autocomplete-item:hover{background:var(--surface);}
 .autocomplete-city{font-weight:500;}
-.autocomplete-state{color:var(--text2);font-size:.75rem;}
+.autocomplete-state{color:var(--muted);font-size:.75rem;}
 
 /* PRICE SUGGESTION */
 .price-suggestion{background:rgba(61,220,132,.08);border:1px solid rgba(61,220,132,.2);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:none;}
 .price-suggestion.show{display:block;}
 .ps-title{font-size:.78rem;color:var(--green);font-weight:600;margin-bottom:4px;}
-.ps-details{font-size:.8rem;color:var(--text2);}
+.ps-details{font-size:.8rem;color:var(--muted);}
 .ps-btns{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
 .ps-btn{padding:5px 12px;border-radius:8px;border:1px solid var(--green);background:transparent;color:var(--green);font-size:.78rem;cursor:pointer;transition:all .2s;}
 .ps-btn:hover{background:var(--green);color:#000;}
@@ -195,74 +89,34 @@ nav{
 .auth-wrap{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center;min-height:70vh;}
 .auth-hero h1{font-family:'Syne',sans-serif;font-size:clamp(2rem,3.5vw,3rem);font-weight:800;line-height:1.1;margin-bottom:14px;}
 .auth-hero h1 em{font-style:normal;color:var(--accent);}
-.auth-hero p{color:var(--text2);line-height:1.6;margin-bottom:20px;}
+.auth-hero p{color:var(--muted);line-height:1.6;margin-bottom:20px;}
 .pill-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
-.pill{padding:6px 14px;border-radius:30px;border:1px solid var(--border);font-size:.78rem;color:var(--text2);display:flex;align-items:center;gap:5px;}
+.pill{padding:6px 14px;border-radius:30px;border:1px solid var(--border);font-size:.78rem;color:var(--muted);display:flex;align-items:center;gap:5px;}
 .pill .dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
-.auth-card{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:24px;padding:36px;
-  box-shadow:0 20px 60px rgba(0,0,0,.5);
-  position:relative;
-}
-.auth-card::before{
-  content:'';position:absolute;inset:0;
-  border-radius:24px;
-  background:linear-gradient(135deg,rgba(245,166,35,.04),transparent 60%);
-  pointer-events:none;
-}
+.auth-card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:32px;}
 .auth-card h2{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:700;margin-bottom:4px;}
-.auth-card>p{color:var(--text2);font-size:.88rem;margin-bottom:24px;}
-.tab-switch{
-  display:flex;background:var(--surface);border-radius:10px;padding:3px;
-  margin-bottom:20px;border:1px solid var(--border);
-}
-.tab-btn{
-  flex:1;padding:9px;border:none;cursor:pointer;border-radius:8px;
-  font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;
-  background:transparent;color:var(--text2);transition:all .2s;
-}
-.tab-btn.active{
-  background:linear-gradient(135deg,var(--accent),#e8860f);
-  color:#000;box-shadow:0 2px 8px rgba(245,166,35,.25);
-}
+.auth-card>p{color:var(--muted);font-size:.88rem;margin-bottom:24px;}
+.tab-switch{display:flex;background:var(--surface);border-radius:10px;padding:3px;margin-bottom:20px;}
+.tab-btn{flex:1;padding:8px;border:none;cursor:pointer;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;background:transparent;color:var(--muted);transition:all .2s;}
+.tab-btn.active{background:var(--accent);color:#000;}
 
 /* SEARCH */
-.search-bar{
-  display:grid;grid-template-columns:1fr 1fr 150px 130px auto;
-  gap:10px;margin-bottom:28px;
-  background:var(--card);border:1px solid var(--border);
-  border-radius:18px;padding:16px 20px;align-items:end;
-  box-shadow:0 4px 20px rgba(0,0,0,.3);
-}
+.search-bar{display:grid;grid-template-columns:1fr 1fr 150px 130px auto;gap:10px;margin-bottom:28px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:14px 18px;align-items:end;}
 .sb-group{position:relative;}
-.sb-group label{display:block;font-size:.73rem;color:var(--text2);margin-bottom:5px;}
+.sb-group label{display:block;font-size:.73rem;color:var(--muted);margin-bottom:5px;}
 .sb-group input,.sb-group select{width:100%;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:9px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.86rem;outline:none;}
 .btn-search{padding:9px 18px;background:var(--accent);color:#000;border:none;border-radius:9px;font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;cursor:pointer;white-space:nowrap;}
 .rides-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px;}
-.ride-card{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:var(--radius-lg);padding:20px;
-  transition:all .2s;position:relative;overflow:hidden;
-}
-.ride-card::before{
-  content:'';position:absolute;top:0;left:0;bottom:0;width:3px;
-  background:linear-gradient(180deg,var(--accent),var(--accent2));
-  opacity:0;transition:opacity .25s;border-radius:3px 0 0 3px;
-}
-.ride-card:hover{
-  border-color:var(--border2);
-  transform:translateY(-2px);
-  box-shadow:0 8px 28px rgba(0,0,0,.35);
-  background:var(--card2);
-}
+.ride-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:border-color .2s,transform .2s;position:relative;overflow:hidden;}
+.ride-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:0;transition:opacity .2s;}
+.ride-card:hover{border-color:var(--accent);transform:translateY(-3px);}
 .ride-card:hover::before{opacity:1;}
-.ride-card.booked-card{border-color:rgba(255,107,107,.25);background:rgba(255,107,107,.02);}
+.ride-card.booked-card{border-color:rgba(255,107,107,.4);}
 .ride-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
 .ride-user{display:flex;align-items:center;gap:9px;}
 .ride-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0;background:linear-gradient(135deg,var(--accent),var(--accent2));}
 .ride-name{font-weight:600;font-size:.9rem;}
-.ride-rating{color:var(--text2);font-size:.78rem;}
+.ride-rating{color:var(--muted);font-size:.78rem;}
 .ride-type{padding:4px 10px;border-radius:20px;font-size:.72rem;font-weight:600;}
 .type-bike{background:rgba(245,166,35,.15);color:var(--accent);}
 .type-car{background:rgba(78,158,255,.15);color:var(--blue);}
@@ -271,40 +125,31 @@ nav{
 .dot-from{background:var(--green);}
 .dot-to{background:var(--accent2);}
 .route-line{width:2px;height:16px;background:var(--border);margin-left:3px;}
-.route-label{font-size:.75rem;color:var(--text2);}
+.route-label{font-size:.75rem;color:var(--muted);}
 .route-val{font-size:.9rem;font-weight:500;}
 .ride-meta{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0;}
-.meta-item{display:flex;align-items:center;gap:4px;font-size:.78rem;color:var(--text2);}
+.meta-item{display:flex;align-items:center;gap:4px;font-size:.78rem;color:var(--muted);}
 .meta-item span{color:var(--text);font-weight:500;}
 .ride-footer{display:flex;justify-content:space-between;align-items:center;}
 .ride-price{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:700;color:var(--accent);}
-.ride-price small{font-size:.68rem;color:var(--text2);}
-.btn-connect{
-  padding:7px 16px;
-  background:linear-gradient(135deg,var(--green),#00b87d);
-  color:#000;border:none;border-radius:8px;
-  font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;
-  cursor:pointer;transition:all .15s;
-  box-shadow:0 2px 8px rgba(0,214,143,.25);
-}
-.btn-connect:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,214,143,.35);}
-.btn-connect:active{transform:scale(.97);}
+.ride-price small{font-size:.68rem;color:var(--muted);}
+.btn-connect{padding:7px 16px;background:var(--green);color:#000;border:none;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;cursor:pointer;}
 .btn-myrride{padding:7px 16px;background:rgba(245,166,35,.15);color:var(--accent);border:1px solid rgba(245,166,35,.3);border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;cursor:default;}
 .btn-full{padding:7px 16px;background:rgba(255,107,107,.15);color:var(--accent2);border:1px solid rgba(255,107,107,.3);border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;cursor:default;}
 .seats-bar{margin:8px 0;background:var(--surface);border-radius:6px;height:5px;overflow:hidden;}
 .seats-fill{height:100%;border-radius:6px;background:var(--green);}
 .seats-fill.full{background:var(--accent2);}
-.empty-state{text-align:center;padding:48px 24px;color:var(--text2);}
+.empty-state{text-align:center;padding:48px 24px;color:var(--muted);}
 .empty-icon{font-size:3rem;margin-bottom:12px;}
-.loading-state{text-align:center;padding:48px;color:var(--text2);}
+.loading-state{text-align:center;padding:48px;color:var(--muted);}
 
 /* MAP POPUP */
-.map-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:600;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.map-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:600;display:none;align-items:center;justify-content:center;}
 .map-overlay.open{display:flex;}
 .map-box{background:var(--card);border-radius:20px;width:90%;max-width:800px;height:70vh;display:flex;flex-direction:column;overflow:hidden;}
 .map-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .map-header h3{font-family:'Syne',sans-serif;font-weight:700;}
-.map-close{cursor:pointer;color:var(--text2);font-size:1.2rem;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--surface);}
+.map-close{cursor:pointer;color:var(--muted);font-size:1.2rem;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--surface);}
 .map-close:hover{color:var(--text);}
 #route-map{flex:1;border-radius:0 0 20px 20px;}
 .map-info-bar{padding:10px 20px;background:var(--surface);display:flex;gap:20px;align-items:center;font-size:.82rem;}
@@ -318,10 +163,10 @@ nav{
 /* POST RIDE */
 .post-wrap{display:grid;grid-template-columns:1fr 1fr;gap:36px;}
 .vehicle-toggle{display:flex;gap:10px;margin-bottom:16px;}
-.veh-btn{flex:1;padding:12px;border-radius:10px;border:2px solid var(--border);background:var(--surface);color:var(--text2);font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .2s;text-align:center;}
+.veh-btn{flex:1;padding:12px;border-radius:10px;border:2px solid var(--border);background:var(--surface);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .2s;text-align:center;}
 .veh-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(245,166,35,.08);}
 .veh-btn .icon{font-size:1.3rem;display:block;margin-bottom:3px;}
-.hint{font-size:.75rem;color:var(--text2);margin-top:4px;}
+.hint{font-size:.75rem;color:var(--muted);margin-top:4px;}
 .my-ride-item{padding:12px 0;border-bottom:1px solid var(--border);}
 .my-ride-item:last-child{border-bottom:none;}
 .my-ride-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
@@ -331,7 +176,7 @@ nav{
 .map-btn-small:hover{background:var(--blue);color:#000;}
 
 /* CHAT */
-.chat-layout{display:grid;grid-template-columns:270px 1fr;height:calc(100vh - 150px);background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.chat-layout{display:grid;grid-template-columns:270px 1fr;height:calc(100vh - 150px);background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;}
 .chat-list{border-right:1px solid var(--border);overflow-y:auto;}
 .chat-list-header{padding:18px;border-bottom:1px solid var(--border);}
 .chat-list-header h3{font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;}
@@ -341,7 +186,7 @@ nav{
 .chat-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;flex-shrink:0;}
 .chat-meta{flex:1;min-width:0;}
 .chat-name{font-weight:600;font-size:.86rem;}
-.chat-preview{font-size:.76rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.chat-preview{font-size:.76rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .unread-badge{background:var(--accent);color:#000;width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;}
 .chat-main{display:flex;flex-direction:column;}
 .chat-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
@@ -353,74 +198,40 @@ nav{
 .msg-bubble{padding:10px 14px;border-radius:16px;font-size:.86rem;line-height:1.5;}
 .msg.recv .msg-bubble{background:var(--surface);border:1px solid var(--border);border-radius:4px 16px 16px 16px;}
 .msg.sent .msg-bubble{background:var(--accent);color:#000;border-radius:16px 4px 16px 16px;}
-.msg-time{font-size:.68rem;color:var(--text2);margin-top:3px;}
+.msg-time{font-size:.68rem;color:var(--muted);margin-top:3px;}
 .msg.sent .msg-time{text-align:right;}
 .chat-input-bar{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;}
 .chat-input{flex:1;padding:10px 16px;background:var(--surface);border:1px solid var(--border);border-radius:22px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;}
 .chat-input:focus{border-color:var(--accent);}
 .btn-send{width:40px;height:40px;border-radius:50%;background:var(--accent);color:#000;border:none;font-size:1rem;cursor:pointer;}
-.typing-indicator{font-size:.75rem;color:var(--text2);padding:0 20px 8px;font-style:italic;}
+.typing-indicator{font-size:.75rem;color:var(--muted);padding:0 20px 8px;font-style:italic;}
 
 /* WALLET */
-.wallet-card{
-  background:linear-gradient(135deg,#0d1929 0%,#0f2040 50%,#0d1929 100%);
-  border:1px solid rgba(78,158,255,.2);
-  border-radius:22px;padding:28px;margin-bottom:24px;
-  position:relative;overflow:hidden;
-  box-shadow:0 8px 32px rgba(0,0,0,.4);
-}
-.wallet-card::before{
-  content:'';position:absolute;top:-60px;right:-60px;
-  width:200px;height:200px;border-radius:50%;
-  background:radial-gradient(circle,rgba(78,158,255,.12),transparent 70%);
-  pointer-events:none;
-}
-.wallet-card::after{
-  content:'';position:absolute;bottom:-40px;left:-40px;
-  width:160px;height:160px;border-radius:50%;
-  background:radial-gradient(circle,rgba(245,166,35,.08),transparent 70%);
-  pointer-events:none;
-}
-.wallet-balance{
-  font-family:'Syne',sans-serif;font-size:2.6rem;font-weight:800;
-  color:#fff;margin-bottom:4px;letter-spacing:-1px;
-  position:relative;z-index:1;
-}
-.wallet-label{color:rgba(255,255,255,.45);font-size:.78rem;margin-bottom:4px;position:relative;z-index:1;}
-.wallet-actions{display:flex;gap:10px;margin-top:20px;position:relative;z-index:1;}
-.wallet-btn{
-  flex:1;padding:11px;border-radius:11px;border:none;
-  font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;
-  cursor:pointer;transition:all .18s;
-}
-.wallet-btn:hover{transform:translateY(-1px);}
-.wallet-btn:active{transform:scale(.97);}
+.wallet-card{background:linear-gradient(135deg,#1e2a45,#1e3040);border:1px solid rgba(78,158,255,.3);border-radius:20px;padding:24px;margin-bottom:24px;}
+.wallet-balance{font-family:'Syne',sans-serif;font-size:2.4rem;font-weight:800;color:#fff;margin-bottom:4px;}
+.wallet-label{color:rgba(255,255,255,.5);font-size:.78rem;margin-bottom:4px;}
+.wallet-actions{display:flex;gap:10px;margin-top:16px;}
+.wallet-btn{flex:1;padding:10px;border-radius:10px;border:none;font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;cursor:pointer;}
 .tx-list{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
 .tx-item{display:flex;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border);gap:14px;}
 .tx-item:last-child{border-bottom:none;}
 .tx-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
 .tx-info{flex:1;}
 .tx-label{font-weight:500;font-size:.88rem;}
-.tx-date{color:var(--text2);font-size:.76rem;}
+.tx-date{color:var(--muted);font-size:.76rem;}
 .tx-amount{font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;}
 .withdraw-form{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;display:none;}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;align-items:center;justify-content:center;}
 .modal-overlay.open{display:flex;}
-.modal-box{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:22px;padding:30px;width:100%;max-width:420px;margin:16px;
-  box-shadow:0 24px 60px rgba(0,0,0,.6);
-  animation:modalIn .2s ease;
-}
-@keyframes modalIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;width:100%;max-width:420px;margin:16px;}
 .modal-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;margin-bottom:6px;}
-.modal-sub{color:var(--text2);font-size:.84rem;margin-bottom:20px;}
+.modal-sub{color:var(--muted);font-size:.84rem;margin-bottom:20px;}
 .payment-methods{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
 .pay-method{padding:14px;border:2px solid var(--border);border-radius:12px;cursor:pointer;text-align:center;transition:all .2s;background:var(--surface);}
 .pay-method:hover,.pay-method.selected{border-color:var(--accent);background:rgba(245,166,35,.08);}
 .pay-method-icon{font-size:1.6rem;margin-bottom:5px;}
 .pay-method-name{font-size:.82rem;font-weight:600;}
-.pay-method-desc{font-size:.72rem;color:var(--text2);}
+.pay-method-desc{font-size:.72rem;color:var(--muted);}
 @media(max-width:768px){
   .auth-wrap{grid-template-columns:1fr;}.auth-hero{display:none;}
   .search-bar{grid-template-columns:1fr 1fr;}.sb-group:nth-child(4),.sb-group:nth-child(5){grid-column:1/-1;}
@@ -429,104 +240,18 @@ nav{
   .rides-grid{grid-template-columns:1fr;}
   .map-box{width:95%;height:80vh;}
 }
-
-/* ── PREMIUM ADDITIONS ── */
-/* Toast notifications */
-#toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
-.toast{background:var(--card2);border:1px solid var(--border2);border-radius:12px;padding:12px 18px;font-size:.84rem;color:var(--text);display:flex;align-items:center;gap:10px;box-shadow:var(--shadow);pointer-events:all;animation:slideIn .3s ease;max-width:320px;}
-.toast.success{border-left:3px solid var(--green);}
-.toast.error{border-left:3px solid var(--accent2);}
-.toast.info{border-left:3px solid var(--blue);}
-@keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
-@keyframes slideOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(40px)}}
-
-/* Skeleton loading */
-.skeleton{background:linear-gradient(90deg,var(--card) 25%,var(--card2) 50%,var(--card) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px;}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.skel-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;height:220px;}
-.skel-line{height:12px;margin-bottom:10px;}
-.skel-circle{width:44px;height:44px;border-radius:50%;}
-
-/* Bottom nav for mobile */
-.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(8,12,20,.97);border-top:1px solid var(--border);padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:300;backdrop-filter:blur(16px);}
-.bottom-nav-inner{display:flex;justify-content:space-around;}
-.bnav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 8px;border-radius:10px;transition:background .15s;min-width:52px;}
-.bnav-item:hover{background:var(--surface);}
-.bnav-icon{font-size:1.2rem;line-height:1;}
-.bnav-label{font-size:.58rem;color:var(--text2);font-weight:500;}
-.bnav-item.active .bnav-label{color:var(--accent);}
-.bnav-item.active .bnav-icon{filter:drop-shadow(0 0 4px rgba(245,166,35,.6));}
-
-/* Ride card premium */
-.ride-card{position:relative;overflow:hidden;transition:transform .2s,border-color .2s,box-shadow .2s;}
-.ride-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.5);}
-.ride-card .card-glow{position:absolute;inset:0;background:linear-gradient(135deg,rgba(245,166,35,.04),transparent);pointer-events:none;}
-.verified-badge{display:inline-flex;align-items:center;gap:3px;background:rgba(0,214,143,.12);color:var(--green);border:1px solid rgba(0,214,143,.2);border-radius:20px;padding:2px 8px;font-size:.68rem;font-weight:600;}
-.ai-score-bar{height:3px;border-radius:2px;background:var(--border);margin-top:8px;overflow:hidden;}
-.ai-score-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--green));}
-
-/* Premium search bar */
-.search-wrap{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:18px 20px;margin-bottom:24px;}
-.search-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;}
-.search-fields{display:grid;grid-template-columns:1fr 1fr 160px 130px;gap:10px;flex:1;}
-
-/* Premium wallet card */
-.wallet-premium{background:linear-gradient(135deg,#0f1f3d,#1a2d4a);border:1px solid rgba(78,158,255,.2);border-radius:20px;padding:28px;margin-bottom:20px;position:relative;overflow:hidden;}
-.wallet-premium::before{content:"";position:absolute;top:-40px;right:-40px;width:180px;height:180px;border-radius:50%;background:rgba(78,158,255,.05);}
-.wallet-premium::after{content:"";position:absolute;bottom:-60px;left:-20px;width:160px;height:160px;border-radius:50%;background:rgba(245,166,35,.04);}
-
-/* Premium section headers */
-.page-header{margin-bottom:28px;}
-.page-title{font-family:"Syne",sans-serif;font-size:1.7rem;font-weight:800;margin-bottom:4px;background:linear-gradient(135deg,var(--text),var(--text2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.page-sub{color:var(--text3);font-size:.88rem;}
-
-/* Pulse animation for live items */
-@keyframes livePulse{0%,100%{opacity:1}50%{opacity:.5}}
-.live-indicator{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;color:var(--green);}
-.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:livePulse 1.5s infinite;}
-
-/* Mobile responsive improvements */
-@media(max-width:768px){
-  .bottom-nav{display:block;}
-  body{padding-bottom:70px;}
-  nav .nav-tabs{display:none;}
-  .search-fields{grid-template-columns:1fr 1fr;}
-  .page-title{font-size:1.3rem;}
-}
-@media(min-width:769px){.bottom-nav{display:none!important;}}
-
-/* Smooth page transitions */
-.screen.active{animation:pageIn .25s ease forwards;}
-@keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-
 </style>
 </head>
 <body>
-
-<!-- TOAST CONTAINER -->
-<div id="toast-container"></div>
-
-<!-- BOTTOM NAV (mobile) -->
-<div class="bottom-nav" id="bottom-nav">
-  <div class="bottom-nav-inner">
-    <div class="bnav-item active" id="bn-auth" onclick="goto('auth')"><div class="bnav-icon">🏠</div><div class="bnav-label">Home</div></div>
-    <div class="bnav-item" id="bn-search" onclick="goto('search')"><div class="bnav-icon">🔍</div><div class="bnav-label">Find</div></div>
-    <div class="bnav-item" id="bn-post" onclick="goto('post')"><div class="bnav-icon">➕</div><div class="bnav-label">Post</div></div>
-    <div class="bnav-item" id="bn-booked" onclick="goto('booked')"><div class="bnav-icon">🎫</div><div class="bnav-label">Bookings</div></div>
-    <div class="bnav-item" id="bn-chat" onclick="goto('chat')"><div class="bnav-icon">💬</div><div class="bnav-label">Chat</div></div>
-    <div class="bnav-item" id="bn-payments" onclick="goto('payments')"><div class="bnav-icon">💰</div><div class="bnav-label">Wallet</div></div>
-  </div>
-</div>
-
 <div class="app">
 
 <!-- NAV -->
 <nav>
-  <div class="logo"><div class="logo-icon">🏍️</div>Buddy<span>Ride</span></div>
+  <div class="logo">🏍️ Buddy<span>Ride</span></div>
   <div style="display:flex;align-items:center;gap:6px;margin-left:12px;">
     <button onclick="setLang('en')" id="lang-en" style="padding:3px 8px;border-radius:20px;border:1px solid var(--border);background:var(--accent);color:#000;font-size:.72rem;font-weight:700;cursor:pointer;">EN</button>
-    <button onclick="setLang('te')" id="lang-te" style="padding:3px 8px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:.72rem;cursor:pointer;">తె</button>
-    <button onclick="setLang('hi')" id="lang-hi" style="padding:3px 8px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:.72rem;cursor:pointer;">हि</button>
+    <button onclick="setLang('te')" id="lang-te" style="padding:3px 8px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.72rem;cursor:pointer;">తె</button>
+    <button onclick="setLang('hi')" id="lang-hi" style="padding:3px 8px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.72rem;cursor:pointer;">हि</button>
   </div>
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="goto('auth')">Home</button>
@@ -566,7 +291,7 @@ nav{
     <div class="map-header">
       <div>
         <h3 id="map-title">Route Map</h3>
-        <div style="color:var(--text2);font-size:.78rem;" id="map-subtitle"></div>
+        <div style="color:var(--muted);font-size:.78rem;" id="map-subtitle"></div>
       </div>
       <div class="map-close" onclick="closeMap()">✕</div>
     </div>
@@ -675,7 +400,7 @@ nav{
   <div class="post-wrap">
     <div class="card">
       <div class="section-title" style="font-size:1.4rem;margin-bottom:4px;">Post a Ride 🚀</div>
-      <p style="color:var(--text2);font-size:.88rem;margin-bottom:22px;">Offer a seat — saved to the live database</p>
+      <p style="color:var(--muted);font-size:.88rem;margin-bottom:22px;">Offer a seat — saved to the live database</p>
       <div id="post-alert" class="alert"></div>
       <div class="vehicle-toggle">
         <div class="veh-btn active" id="veh-bike" onclick="selectVeh('bike')"><span class="icon">🏍️</span>Bike</div>
@@ -721,8 +446,8 @@ nav{
     </div>
     <div>
       <div class="card">
-        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:14px;">My Posted Rides</div>
-        <div id="my-rides-list"><div style="color:var(--text2);font-size:.85rem;">Loading...</div></div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:14px;">My Posted Rides</div>
+        <div id="my-rides-list"><div style="color:var(--muted);font-size:.85rem;">Loading...</div></div>
       </div>
     </div>
   </div>
@@ -733,10 +458,10 @@ nav{
   <div class="chat-layout">
     <div class="chat-list">
       <div class="chat-list-header"><h3>Messages 💬</h3></div>
-      <div id="conversations-list"><div style="padding:16px;color:var(--text2);font-size:.84rem;">Loading...</div></div>
+      <div id="conversations-list"><div style="padding:16px;color:var(--muted);font-size:.84rem;">Loading...</div></div>
     </div>
     <div class="chat-main">
-      <div class="chat-header" id="chat-header"><div style="color:var(--text2);font-size:.88rem;">Select a conversation</div></div>
+      <div class="chat-header" id="chat-header"><div style="color:var(--muted);font-size:.88rem;">Select a conversation</div></div>
       <div class="chat-messages" id="chat-messages"><div class="empty-state"><div class="empty-icon">💬</div><div>Select a conversation</div></div></div>
       <div class="typing-indicator" id="typing-indicator"></div>
       <div class="chat-input-bar">
@@ -763,7 +488,7 @@ nav{
   </div>
   <div class="withdraw-form" id="withdraw-form">
     <div style="font-weight:600;margin-bottom:4px;">Withdraw to UPI</div>
-    <div style="color:var(--text2);font-size:.82rem;margin-bottom:14px;">Money sent within 24 hours</div>
+    <div style="color:var(--muted);font-size:.82rem;margin-bottom:14px;">Money sent within 24 hours</div>
     <div id="withdraw-alert" class="alert"></div>
     <div class="form-row">
       <div class="form-group"><label>Amount (₹)</label><input type="number" id="withdraw-amount" placeholder="Min ₹50" min="50"></div>
@@ -775,7 +500,7 @@ nav{
     </div>
   </div>
   <div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:14px;">Transaction History</div>
-  <div class="tx-list" id="tx-list"><div style="padding:20px;color:var(--text2);font-size:.85rem;">Loading...</div></div>
+  <div class="tx-list" id="tx-list"><div style="padding:20px;color:var(--muted);font-size:.85rem;">Loading...</div></div>
 </div>
 
 <!-- NOTIFICATIONS PANEL -->
@@ -784,10 +509,10 @@ nav{
     <div style="font-family:Syne,sans-serif;font-weight:700;">Notifications</div>
     <div style="display:flex;gap:8px;">
       <span onclick="markNotifsRead()" style="font-size:.75rem;color:var(--blue);cursor:pointer;">Mark all read</span>
-      <span onclick="toggleNotifPanel()" style="cursor:pointer;color:var(--text2);">✕</span>
+      <span onclick="toggleNotifPanel()" style="cursor:pointer;color:var(--muted);">✕</span>
     </div>
   </div>
-  <div id="notif-list"><div style="padding:16px;color:var(--text2);font-size:.84rem;">Loading...</div></div>
+  <div id="notif-list"><div style="padding:16px;color:var(--muted);font-size:.84rem;">Loading...</div></div>
 </div>
 
 <!-- BOOKED RIDES SCREEN -->
@@ -804,7 +529,7 @@ nav{
   <div class="section-sub" id="t-history-sub">All your past rides as driver and rider</div>
   <div style="display:flex;gap:10px;margin-bottom:20px;">
     <button class="tab-btn active" id="hist-tab-rider" onclick="switchHistTab('rider')" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--accent);color:#000;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:600;">As Rider</button>
-    <button class="tab-btn" id="hist-tab-driver" onclick="switchHistTab('driver')" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:DM Sans,sans-serif;">As Driver</button>
+    <button class="tab-btn" id="hist-tab-driver" onclick="switchHistTab('driver')" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:DM Sans,sans-serif;">As Driver</button>
   </div>
   <div id="history-list"><div class="loading-state">Loading...</div></div>
 </div>
@@ -976,7 +701,7 @@ async function autocomplete(input, listId){
   const list=document.getElementById(listId);
   if(val.length<2){list.classList.remove('open');return;}
   clearTimeout(acTimer);
-  list.innerHTML='<div style="padding:10px 14px;color:var(--text2);font-size:.82rem;">Searching...</div>';
+  list.innerHTML='<div style="padding:10px 14px;color:var(--muted);font-size:.82rem;">Searching...</div>';
   list.classList.add('open');
   acTimer=setTimeout(async()=>{
     try{
@@ -1148,15 +873,7 @@ window.startLiveTracking=startLiveTracking;
 // ── Search ────────────────────────────────────────────────────
 async function doSearch(){
   const grid=document.getElementById('rides-grid');
-  grid.innerHTML=Array(6).fill(0).map(()=>`
-  <div class="skel-card">
-    <div style="display:flex;gap:10px;margin-bottom:16px;">
-      <div class="skeleton skel-circle"></div>
-      <div style="flex:1;"><div class="skeleton skel-line" style="width:60%"></div><div class="skeleton skel-line" style="width:40%"></div></div>
-    </div>
-    <div class="skeleton skel-line"></div><div class="skeleton skel-line" style="width:80%"></div>
-    <div class="skeleton skel-line" style="width:70%;margin-top:16px;"></div>
-  </div>`).join('');
+  grid.innerHTML='<div class="loading-state">🔍 Searching rides...</div>';
   hideAlert('search-alert');
   // Load user booked ride IDs to mark cards
   if(isLoggedIn()&&!window._myBookedRideIds){
@@ -1187,7 +904,7 @@ async function doSearch(){
     const pct=Math.round((booked/total)*100);
     const seatBar=r.vehicle_type==='car'?`
       <div style="margin-bottom:8px;">
-        <div style="display:flex;justify-content:space-between;font-size:.73rem;color:var(--text2);margin-bottom:4px;"><span>${booked} booked</span><span>${avail} of ${total} left</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:.73rem;color:var(--muted);margin-bottom:4px;"><span>${booked} booked</span><span>${avail} of ${total} left</span></div>
         <div class="seats-bar"><div class="seats-fill${isFull?' full':''}" style="width:${pct}%"></div></div>
       </div>`:'';
     const alreadyBooked=window._myBookedRideIds&&window._myBookedRideIds.has(r.id);
@@ -1198,7 +915,7 @@ async function doSearch(){
       :r.vehicle_type==='car'&&avail>1
         ?`<button class="btn-connect" onclick="showSeatPicker('${r.id}',${avail},'${r.driver_id}','${r.driver_name||""}',this)">Book →</button>`
         :`<button class="btn-connect" onclick="doBookRide('${r.id}',1,'${r.driver_id}','${r.driver_name||""}',this)">Book →</button>`;
-    return`<div class="ride-card${isFull?' booked-card':''}"><div class="card-glow"></div>
+    return`<div class="ride-card${isFull?' booked-card':''}">
       <div class="ride-top">
         <div class="ride-user">
           <div class="ride-avatar">${initials}</div>
@@ -1217,7 +934,6 @@ async function doSearch(){
         ${isFull?'<span class="badge badge-red">🔴 Full</span>':''}
       </div>
       ${seatBar}
-      ${r.ai_score?`<div class="ai-score-bar"><div class="ai-score-fill" style="width:${r.ai_score}%;"></div></div>`:''}
       <div class="ride-footer">
         <div class="ride-price">₹${r.price_per_seat} <small>/ person</small></div>
         <div style="display:flex;gap:6px;align-items:center;">
@@ -1241,11 +957,11 @@ function showSeatPicker(rideId, maxSeats, driverId, driverName, btn){
   picker.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:600;display:flex;align-items:center;justify-content:center;';
   picker.innerHTML=`<div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;width:320px;">
     <div style="font-family:Syne,sans-serif;font-weight:800;font-size:1.1rem;margin-bottom:6px;">How many seats?</div>
-    <div style="color:var(--text2);font-size:.84rem;margin-bottom:18px;">Select the number of seats you need</div>
+    <div style="color:var(--muted);font-size:.84rem;margin-bottom:18px;">Select the number of seats you need</div>
     <select id="seat-picker-sel" style="width:100%;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.9rem;outline:none;margin-bottom:16px;">${opts}</select>
     <div style="display:flex;gap:10px;">
       <button id="seat-confirm-btn" onclick="confirmSeatBook('${rideId}','${driverId}')" style="flex:1;padding:12px;background:var(--accent);color:#000;border:none;border-radius:10px;font-family:Syne,sans-serif;font-weight:700;cursor:pointer;">Confirm Booking</button>
-      <button onclick="this.closest('[style*=fixed]').remove()" style="padding:12px 16px;background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:10px;cursor:pointer;">Cancel</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="padding:12px 16px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:10px;cursor:pointer;">Cancel</button>
     </div>
   </div>`;
   document.body.appendChild(picker);
@@ -1334,7 +1050,7 @@ async function loadMyRides(){
   if(!isLoggedIn())return;
   const{rides}=await myPostedRides();
   const el=document.getElementById('my-rides-list');
-  if(!rides||!rides.length){el.innerHTML='<div style="color:var(--text2);font-size:.84rem;">No rides posted yet.</div>';return;}
+  if(!rides||!rides.length){el.innerHTML='<div style="color:var(--muted);font-size:.84rem;">No rides posted yet.</div>';return;}
   el.innerHTML=rides.slice(0,5).map(r=>{
     const dept=new Date(r.departure_time).toLocaleDateString('en-IN',{month:'short',day:'numeric'});
     const booked=parseInt(r.confirmed_bookings||0);
@@ -1344,13 +1060,13 @@ async function loadMyRides(){
     return`<div class="my-ride-item">
       <div class="my-ride-header">
         <div><div style="font-weight:600;font-size:.88rem;">${r.from_city} → ${r.to_city}</div>
-        <div style="color:var(--text2);font-size:.76rem;">${dept} · ₹${r.price_per_seat}/seat</div></div>
+        <div style="color:var(--muted);font-size:.76rem;">${dept} · ₹${r.price_per_seat}/seat</div></div>
         <span class="badge ${sc}">${r.status}</span>
       </div>
       <div class="booking-info">
-        <div class="booking-row"><span style="color:var(--text2);">Bookings</span><span style="font-weight:600;color:${booked>0?'var(--green)':'var(--muted)'};">${booked} booked</span></div>
-        <div class="booking-row"><span style="color:var(--text2);">Seats left</span><span style="font-weight:600;">${avail} of ${total}</span></div>
-        ${booked===0?'<div style="color:var(--text2);font-size:.75rem;margin-top:3px;">⏳ Waiting for bookings...</div>':''}
+        <div class="booking-row"><span style="color:var(--muted);">Bookings</span><span style="font-weight:600;color:${booked>0?'var(--green)':'var(--muted)'};">${booked} booked</span></div>
+        <div class="booking-row"><span style="color:var(--muted);">Seats left</span><span style="font-weight:600;">${avail} of ${total}</span></div>
+        ${booked===0?'<div style="color:var(--muted);font-size:.75rem;margin-top:3px;">⏳ Waiting for bookings...</div>':''}
         ${r.status==='full'?'<div style="color:var(--green);font-size:.75rem;margin-top:3px;">✅ All seats booked!</div>':''}
       </div>
       <button class="map-btn-small" onclick="openRouteMap('${r.from_city}','${r.to_city}','${r.id}')">🗺️ View Route on Map</button>
@@ -1363,7 +1079,7 @@ async function loadConversations(){
   if(!isLoggedIn())return;
   const{conversations}=await getConversations();
   const el=document.getElementById('conversations-list');
-  if(!conversations||!conversations.length){el.innerHTML='<div style="padding:16px;color:var(--text2);font-size:.84rem;">No conversations yet.</div>';return;}
+  if(!conversations||!conversations.length){el.innerHTML='<div style="padding:16px;color:var(--muted);font-size:.84rem;">No conversations yet.</div>';return;}
   el.innerHTML=conversations.map(c=>{
     const initials=c.partner_name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     return`<div class="chat-item" onclick="openConversation('${c.partner_id}','${c.partner_name}')">
@@ -1381,7 +1097,7 @@ async function openConversation(partnerId,partnerName){
   const initials=partnerName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
   document.getElementById('chat-header').innerHTML=`
     <div class="chat-av" style="background:linear-gradient(135deg,var(--accent),var(--accent2));width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;">${initials}</div>
-    <div><div style="font-weight:600;">${partnerName}</div><div style="display:flex;align-items:center;gap:5px;font-size:.76rem;color:var(--text2);"><div class="status-dot"></div>Active</div></div>`;
+    <div><div style="font-weight:600;">${partnerName}</div><div style="display:flex;align-items:center;gap:5px;font-size:.76rem;color:var(--muted);"><div class="status-dot"></div>Active</div></div>`;
   document.getElementById('chat-input').disabled=false;
   document.getElementById('btn-send-msg').disabled=false;
   const{messages}=await getMessages(partnerId);
@@ -1441,7 +1157,7 @@ async function loadWallet(){
   if(wallet)document.getElementById('wallet-balance').textContent='₹'+parseFloat(wallet.wallet_balance).toFixed(2);
   const{transactions}=await getTransactions();
   const list=document.getElementById('tx-list');
-  if(!transactions||!transactions.length){list.innerHTML='<div style="padding:20px;color:var(--text2);">No transactions yet.</div>';return;}
+  if(!transactions||!transactions.length){list.innerHTML='<div style="padding:20px;color:var(--muted);">No transactions yet.</div>';return;}
   list.innerHTML=transactions.map(t=>{
     const isCredit=t.amount>0;
     const date=new Date(t.created_at).toLocaleDateString('en-IN',{month:'short',day:'numeric',year:'numeric'});
@@ -1518,11 +1234,6 @@ function goto(id){
   if(scr) scr.classList.add('active');
   const ALL=['auth','search','post','booked','chat','history','savings','payments'];
   document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',ALL[i]===id));
-  // Sync bottom nav
-  ['auth','search','post','booked','chat','payments'].forEach(s=>{
-    const bn=document.getElementById('bn-'+s);
-    if(bn) bn.classList.toggle('active',s===id);
-  });
   if(id==='search')   doSearch();
   if(id==='post')     loadMyRides();
   if(id==='chat')     loadConversations();
@@ -1615,7 +1326,7 @@ async function loadHistory(tab){
       <div style="width:42px;height:42px;border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">${r.vehicle==='bike'?'🏍️':'🚗'}</div>
       <div style="flex:1;">
         <div style="font-weight:600;font-size:.9rem;">${r.from} → ${r.to}</div>
-        <div style="color:var(--text2);font-size:.78rem;">${d} · ${r.role} · ${r.other}</div>
+        <div style="color:var(--muted);font-size:.78rem;">${d} · ${r.role} · ${r.other}</div>
       </div>
       <div style="text-align:right;">
         <div style="font-family:Syne,sans-serif;font-weight:700;color:var(--accent);">₹${r.price}</div>
@@ -1629,7 +1340,7 @@ async function loadHistory(tab){
 // SAVINGS DASHBOARD
 // ══════════════════════════════════════════════════════
 async function loadSavings(){
-  if(!isLoggedIn()){document.getElementById('savings-stats').innerHTML='<div style="color:var(--text2);">Please log in</div>';return;}
+  if(!isLoggedIn()){document.getElementById('savings-stats').innerHTML='<div style="color:var(--muted);">Please log in</div>';return;}
   const{bookings}=await myBookedRides();
   const{rides}=await myPostedRides();
   const allBookings=bookings||[];
@@ -1647,7 +1358,7 @@ async function loadSavings(){
   ].map(s=>`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;">
     <div style="font-size:2rem;margin-bottom:6px;">${s.icon}</div>
     <div style="font-family:Syne,sans-serif;font-size:1.6rem;font-weight:800;color:var(--accent);">${s.val}</div>
-    <div style="color:var(--text2);font-size:.8rem;margin-top:4px;">${s.label}</div>
+    <div style="color:var(--muted);font-size:.8rem;margin-top:4px;">${s.label}</div>
   </div>`).join('');
   // Motivational message
   const msgEl=document.getElementById('savings-rides');
@@ -1676,13 +1387,13 @@ async function loadNotifications(){
     const data=await r.json();
     const notifs=data.notifications||[];
     document.getElementById('notif-dot').style.display=data.unread>0?'block':'none';
-    if(!notifs.length){el.innerHTML='<div style="padding:16px;color:var(--text2);font-size:.84rem;">No notifications yet</div>';return;}
+    if(!notifs.length){el.innerHTML='<div style="padding:16px;color:var(--muted);font-size:.84rem;">No notifications yet</div>';return;}
     el.innerHTML=notifs.map(n=>`
       <div style="padding:12px 16px;border-bottom:1px solid var(--border);${n.is_read?'':'background:rgba(245,166,35,.04);'}display:flex;gap:10px;cursor:pointer;">
         <div style="width:32px;height:32px;border-radius:50%;background:rgba(78,158,255,.15);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;">🔔</div>
-        <div><div style="font-size:.84rem;font-weight:600;">${n.title}</div><div style="font-size:.76rem;color:var(--text2);">${n.body||''}</div></div>
+        <div><div style="font-size:.84rem;font-weight:600;">${n.title}</div><div style="font-size:.76rem;color:var(--muted);">${n.body||''}</div></div>
       </div>`).join('');
-  }catch(e){el.innerHTML='<div style="padding:16px;color:var(--text2);font-size:.84rem;">Could not load</div>';}
+  }catch(e){el.innerHTML='<div style="padding:16px;color:var(--muted);font-size:.84rem;">Could not load</div>';}
 }
 async function markNotifsRead(){
   await fetch('https://buddyride-backend-production.up.railway.app/api/notifications/read',
@@ -1866,24 +1577,7 @@ setTimeout(()=>{
 },100);
 
 
-function showAlert(id,msg,type){
-  // Update inline alert if it exists
-  const el=document.getElementById(id);
-  if(el){el.textContent=msg;el.className='alert show alert-'+type;setTimeout(()=>el.classList.remove('show'),6000);}
-  // Always show a toast
-  showToast(msg,type);
-}
-
-function showToast(msg,type='info'){
-  const c=document.getElementById('toast-container');
-  if(!c)return;
-  const icons={success:'✅',error:'❌',info:'ℹ️',warning:'⚠️'};
-  const t=document.createElement('div');
-  t.className='toast '+type;
-  t.innerHTML=`<span style="font-size:1rem;flex-shrink:0;">${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
-  c.appendChild(t);
-  setTimeout(()=>{t.style.animation='slideOut .3s ease forwards';setTimeout(()=>t.remove(),300);},3500);
-}
+function showAlert(id,msg,type){const el=document.getElementById(id);el.textContent=msg;el.className='alert show alert-'+type;setTimeout(()=>el.classList.remove('show'),6000);}
 function hideAlert(id){document.getElementById(id).classList.remove('show');}
 function setLoading(btn,loading,label){btn.disabled=loading;btn.innerHTML=loading?'<span class="spinner"></span>Please wait...':label;}
 </script>
