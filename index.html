@@ -10,26 +10,29 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 :root{
-  --bg:#080c14;
-  --surface:#0f1420;
-  --card:#141b28;
-  --card2:#1a2235;
-  --border:#1e2d45;
-  --border2:#243352;
-  --accent:#f5a623;
-  --accent-dim:rgba(245,166,35,.12);
-  --accent2:#ff6b6b;
-  --green:#00d68f;
-  --green-dim:rgba(0,214,143,.1);
-  --blue:#4e9eff;
-  --blue-dim:rgba(78,158,255,.1);
-  --purple:#a78bfa;
-  --text:#e8edf5;
-  --text2:#9ba8bb;
-  --text3:#5c6b80;
-  --radius:14px;
-  --radius-lg:20px;
-  --shadow:0 4px 24px rgba(0,0,0,.4);
+  --bg:#06080f;
+  --surface:#0c1018;
+  --card:#111520;
+  --card2:#161c2a;
+  --border:#1c2438;
+  --border2:#212d42;
+  --accent:#e8961f;
+  --accent-hover:#f0a830;
+  --accent-dim:rgba(232,150,31,.1);
+  --accent2:#f06565;
+  --green:#00c27a;
+  --green-dim:rgba(0,194,122,.1);
+  --blue:#3d8ef0;
+  --blue-dim:rgba(61,142,240,.1);
+  --purple:#8b72e8;
+  --indigo:#6366f1;
+  --text:#dde3ef;
+  --text2:#8896ae;
+  --text3:#4e5d72;
+  --radius:12px;
+  --radius-lg:18px;
+  --shadow:0 8px 32px rgba(0,0,0,.5);
+  --glow-accent:0 0 20px rgba(232,150,31,.15);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
@@ -97,7 +100,7 @@ nav{
 .pd-item-icon{font-size:1rem;width:20px;text-align:center;}
 .pd-divider{height:1px;background:var(--border);margin:4px 0;}
 .pd-logout{color:var(--accent2);}
-.screen{display:none;flex:1;padding:28px 24px;max-width:1100px;margin:0 auto;width:100%;}
+.screen{display:none;flex:1;padding:24px 20px;max-width:1100px;margin:0 auto;width:100%;overflow-x:hidden;}
 .screen.active{display:block;animation:pageIn .25s ease;}
 @keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
@@ -331,33 +334,65 @@ nav{
 .map-btn-small:hover{background:var(--blue);color:#000;}
 
 /* CHAT */
-.chat-layout{display:grid;grid-template-columns:270px 1fr;height:calc(100vh - 150px);background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.4);}
-.chat-list{border-right:1px solid var(--border);overflow-y:auto;}
-.chat-list-header{padding:18px;border-bottom:1px solid var(--border);}
-.chat-list-header h3{font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;}
-.chat-item{padding:13px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s;}
-.chat-item:hover,.chat-item.active{background:var(--surface);}
-.chat-item.active{border-left:3px solid var(--accent);}
-.chat-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;flex-shrink:0;}
+.chat-layout{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 120px);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow);}
+.chat-list{background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column;}
+.chat-list-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--card);}
+.chat-list-header h3{font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;color:var(--text);}
+.chat-search{padding:10px 14px;border-bottom:1px solid var(--border);}
+.chat-search input{width:100%;padding:8px 12px;background:var(--card2);border:1px solid var(--border);border-radius:20px;color:var(--text);font-size:.82rem;outline:none;}
+.chat-item{padding:12px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;border-bottom:1px solid var(--border);transition:all .15s;position:relative;}
+.chat-item:hover{background:var(--card2);}
+.chat-item.active{background:var(--card2);border-left:3px solid var(--accent);}
+.chat-av{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0;position:relative;}
+.chat-av-online::after{content:'';position:absolute;bottom:2px;right:2px;width:10px;height:10px;background:var(--green);border:2px solid var(--surface);border-radius:50%;}
 .chat-meta{flex:1;min-width:0;}
-.chat-name{font-weight:600;font-size:.86rem;}
+.chat-name{font-weight:600;font-size:.88rem;color:var(--text);margin-bottom:2px;}
 .chat-preview{font-size:.76rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.unread-badge{background:var(--accent);color:#000;width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;}
-.chat-main{display:flex;flex-direction:column;}
-.chat-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
-.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
-.chat-messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px;}
-.msg{display:flex;gap:8px;max-width:78%;}
-.msg.sent{flex-direction:row-reverse;margin-left:auto;}
-.msg-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.72rem;flex-shrink:0;}
-.msg-bubble{padding:10px 14px;border-radius:16px;font-size:.86rem;line-height:1.5;}
-.msg.recv .msg-bubble{background:var(--surface);border:1px solid var(--border);border-radius:4px 16px 16px 16px;}
-.msg.sent .msg-bubble{background:var(--accent);color:#000;border-radius:16px 4px 16px 16px;}
-.msg-time{font-size:.68rem;color:var(--text2);margin-top:3px;}
-.msg.sent .msg-time{text-align:right;}
-.chat-input-bar{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;}
-.chat-input{flex:1;padding:10px 16px;background:var(--surface);border:1px solid var(--border);border-radius:22px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;}
-.chat-input:focus{border-color:var(--accent);}
+.chat-time-badge{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+.chat-time-text{font-size:.68rem;color:var(--text3);}
+.unread-badge{background:var(--accent);color:#000;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;padding:0 4px;}
+/* CHAT MAIN */
+.chat-main{display:flex;flex-direction:column;background:var(--bg);}
+.chat-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--card);backdrop-filter:blur(10px);}
+.chat-header-info{flex:1;}
+.chat-header-name{font-weight:600;font-size:.95rem;color:var(--text);}
+.chat-header-status{font-size:.74rem;color:var(--green);display:flex;align-items:center;gap:4px;margin-top:1px;}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:livePulse 2s infinite;}
+.chat-header-actions{display:flex;gap:6px;}
+.chat-action-btn{width:36px;height:36px;border-radius:10px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:all .15s;color:var(--text2);}
+.chat-action-btn:hover{background:var(--card2);color:var(--text);border-color:var(--border2);}
+/* MESSAGES */
+.chat-messages{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:3px;background:var(--bg);background-image:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(232,150,31,.03),transparent);}
+.msg-group{display:flex;flex-direction:column;gap:2px;margin-bottom:8px;}
+.msg-group-header{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.msg-group-av{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.75rem;flex-shrink:0;}
+.msg-group-name{font-size:.78rem;font-weight:600;color:var(--text2);}
+.msg{display:flex;gap:0;max-width:72%;}
+.msg.sent{margin-left:auto;justify-content:flex-end;}
+.msg.recv{margin-right:auto;}
+.msg-bubble{padding:10px 14px;font-size:.87rem;line-height:1.55;word-break:break-word;position:relative;}
+.msg.recv .msg-bubble{background:var(--card2);border:1px solid var(--border);border-radius:4px 16px 16px 16px;color:var(--text);}
+.msg.sent .msg-bubble{background:linear-gradient(135deg,var(--accent),var(--accent-hover));color:#000;border-radius:16px 4px 16px 16px;font-weight:500;}
+.msg-tail-recv{border-radius:4px 16px 16px 16px;}
+.msg-tail-sent{border-radius:16px 4px 16px 16px;}
+.msg-meta{display:flex;align-items:center;gap:4px;margin-top:3px;justify-content:flex-end;}
+.msg-time{font-size:.66rem;color:var(--text3);}
+.msg-read{font-size:.7rem;color:var(--blue);}
+.date-divider{text-align:center;font-size:.72rem;color:var(--text3);padding:8px 0;display:flex;align-items:center;gap:10px;margin:8px 0;}
+.date-divider::before,.date-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+/* CHAT INPUT */
+.chat-input-bar{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end;background:var(--card);}
+.chat-input-wrap{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:20px;display:flex;align-items:center;padding:8px 14px;gap:8px;transition:border-color .2s;}
+.chat-input-wrap:focus-within{border-color:var(--accent);}
+.chat-input{flex:1;background:transparent;border:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;resize:none;max-height:100px;line-height:1.4;}
+.chat-emoji-btn{font-size:1.1rem;cursor:pointer;opacity:.6;transition:opacity .2s;background:none;border:none;}
+.chat-emoji-btn:hover{opacity:1;}
+.btn-send{width:44px;height:44px;border-radius:14px;background:var(--accent);color:#000;border:none;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.btn-send:hover{background:var(--accent-hover);transform:scale(1.05);}
+.btn-send:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.typing-indicator{padding:6px 20px;font-size:.75rem;color:var(--text3);font-style:italic;min-height:24px;}
+/* CHAT BACK BUTTON (mobile) */
+.chat-back-btn{display:none;width:32px;height:32px;border-radius:10px;background:var(--surface);border:1px solid var(--border);align-items:center;justify-content:center;cursor:pointer;margin-right:4px;font-size:.9rem;color:var(--text2);}
 .btn-send{width:40px;height:40px;border-radius:50%;background:var(--accent);color:#000;border:none;font-size:1rem;cursor:pointer;}
 .typing-indicator{font-size:.75rem;color:var(--text2);padding:0 20px 8px;font-style:italic;}
 
@@ -422,12 +457,30 @@ nav{
 .pay-method-name{font-size:.82rem;font-weight:600;}
 .pay-method-desc{font-size:.72rem;color:var(--text2);}
 @media(max-width:768px){
-  .auth-wrap{grid-template-columns:1fr;}.auth-hero{display:none;}
-  .search-bar{grid-template-columns:1fr 1fr;}.sb-group:nth-child(4),.sb-group:nth-child(5){grid-column:1/-1;}
+  .auth-wrap{grid-template-columns:1fr;gap:20px;}.auth-hero{display:none;}
+  .auth-card{padding:24px;}
+  .screen{padding:16px 14px;}
+  .search-bar{grid-template-columns:1fr 1fr;padding:12px 14px;border-radius:14px;}
+  .sb-group:nth-child(3),.sb-group:nth-child(4),.sb-group:nth-child(5){grid-column:1/-1;}
   .post-wrap{grid-template-columns:1fr;}
-  .chat-layout{grid-template-columns:1fr;}.chat-list{display:none;}
+  .post-wrap>div:last-child{display:none;}
+  .chat-layout{grid-template-columns:1fr;height:calc(100vh - 80px);border-radius:0;}
+  .chat-list{display:flex!important;flex-direction:column;}
+  .chat-main{display:none;}
+  .chat-main.active{display:flex;}
+  .chat-list.hidden{display:none!important;}
+  .chat-back-btn{display:flex!important;}
   .rides-grid{grid-template-columns:1fr;}
-  .map-box{width:95%;height:80vh;}
+  .map-box{width:100%;height:90vh;border-radius:0;}
+  .modal-box{margin:10px;padding:20px;border-radius:16px;}
+  .form-row{grid-template-columns:1fr;}
+  .section-title{font-size:1.3rem;}
+  .wallet-card{padding:20px;border-radius:16px;}
+  .wallet-balance{font-size:2rem;}
+  #toast-container{bottom:80px;right:12px;left:12px;}
+  .toast{max-width:100%;}
+  .chat-input-bar{padding:10px 12px;}
+  .btn-send{width:40px;height:40px;}
 }
 
 /* ── PREMIUM ADDITIONS ── */
@@ -611,7 +664,7 @@ nav{
 <div class="screen active" id="screen-auth">
   <div class="auth-wrap">
     <div class="auth-hero">
-      <h1>Travel together,<br>spend <em>less.</em></h1>
+      <h1 id="t-auth-hero">Travel together,<br>spend <em>less.</em></h1>
       <p>Find travel buddies heading your way — split fuel costs, share the journey. Works for cars and bikes across India.</p>
       <div class="pill-row">
         <div class="pill"><div class="dot"></div>Live backend</div>
@@ -621,11 +674,11 @@ nav{
       </div>
     </div>
     <div class="auth-card">
-      <h2>Welcome to BuddyRide</h2>
+      <h2 id="t-auth-welcome">Welcome to BuddyRide</h2>
       <p>Your account is saved to the real database</p>
       <div class="tab-switch">
-        <button class="tab-btn active" id="btn-login" onclick="switchAuth('login')">Sign In</button>
-        <button class="tab-btn" id="btn-register" onclick="switchAuth('register')">Register</button>
+        <button class="tab-btn active" id="btn-login" onclick="switchAuth('login')" id="t-btn-signin">Sign In</button>
+        <button class="tab-btn" id="btn-register" onclick="switchAuth('register')" id="t-btn-register">Register</button>
       </div>
       <div id="auth-alert" class="alert"></div>
       <div id="form-login">
@@ -646,8 +699,8 @@ nav{
 
 <!-- SEARCH -->
 <div class="screen" id="screen-search">
-  <div class="section-title">Find a Ride 🗺️</div>
-  <div class="section-sub">Live rides from the database</div>
+  <div class="section-title" id="t-find-ride">Find a Ride 🗺️</div>
+  <div class="section-sub" id="t-find-ride-sub">Live rides from the database</div>
   <div class="search-bar">
     <!-- FEATURE 2: Autocomplete on search -->
     <div class="sb-group">
@@ -664,7 +717,7 @@ nav{
     <div class="sb-group"><label>Vehicle</label>
       <select id="s-vehicle"><option value="any">Any</option><option value="bike">🏍️ Bike</option><option value="car">🚗 Car</option></select>
     </div>
-    <div class="sb-group"><button class="btn-search" onclick="doSearch()">Search</button></div>
+    <div class="sb-group"><button class="btn-search" id="t-btn-search" onclick="doSearch()">Search</button></div>
   </div>
   <div id="search-alert" class="alert"></div>
   <div id="rides-grid" class="rides-grid"></div>
@@ -674,8 +727,8 @@ nav{
 <div class="screen" id="screen-post">
   <div class="post-wrap">
     <div class="card">
-      <div class="section-title" style="font-size:1.4rem;margin-bottom:4px;">Post a Ride 🚀</div>
-      <p style="color:var(--text2);font-size:.88rem;margin-bottom:22px;">Offer a seat — saved to the live database</p>
+      <div class="section-title" id="t-post-ride" style="font-size:1.4rem;margin-bottom:4px;">Post a Ride 🚀</div>
+      <p id="t-post-ride-sub" style="color:var(--text2);font-size:.88rem;margin-bottom:22px;">Offer a seat — saved to the live database</p>
       <div id="post-alert" class="alert"></div>
       <div class="vehicle-toggle">
         <div class="veh-btn active" id="veh-bike" onclick="selectVeh('bike')"><span class="icon">🏍️</span>Bike</div>
@@ -683,12 +736,12 @@ nav{
       </div>
       <!-- FEATURE 2: Autocomplete on post ride -->
       <div class="form-group">
-        <label>From City</label>
+        <label id="t-from-city">From City</label>
         <input type="text" id="p-from" placeholder="Type city name..." autocomplete="off" oninput="autocomplete(this,'p-from-list');calcDistance()">
         <div class="autocomplete-list" id="p-from-list"></div>
       </div>
       <div class="form-group">
-        <label>To City</label>
+        <label id="t-to-city">To City</label>
         <input type="text" id="p-to" placeholder="Type city name..." autocomplete="off" oninput="autocomplete(this,'p-to-list');calcDistance()">
         <div class="autocomplete-list" id="p-to-list"></div>
       </div>
@@ -699,7 +752,7 @@ nav{
       <div class="form-row">
         <div class="form-group"><label>Booking Expires On</label><input type="date" id="p-expiry"><div class="hint">⏰ Last date to book</div></div>
         <div class="form-group">
-          <label>Available Seats</label>
+          <label id="t-seats">Available Seats</label>
           <select id="p-seats"><option value="1">1 Seat</option></select>
           <div class="hint" id="seats-hint">🏍️ Bikes carry 1 passenger</div>
         </div>
@@ -710,11 +763,11 @@ nav{
         <div class="ps-details" id="ps-details">Calculating...</div>
         <div class="ps-btns" id="ps-btns"></div>
       </div>
-      <div class="form-group"><label>Price per Seat (₹) — you can change this</label><input type="number" id="p-price" placeholder="Enter your price" min="1"></div>
+      <div class="form-group"><label id="t-price">Price per Seat (₹) — you can change this</label><input type="number" id="p-price" placeholder="Enter your price" min="1"></div>
       <div class="form-group"><label>Pickup Details</label><input type="text" id="p-pickup" placeholder="e.g. Kukatpally X-roads, near Apollo pharmacy"></div>
       <div class="form-group"><label>Notes (optional)</label><input type="text" id="p-notes" placeholder="e.g. Light luggage only, no smoking"></div>
       <div style="display:flex;gap:10px;">
-        <button class="btn-main" id="btn-post-ride" onclick="doPostRide()" style="flex:1;">Post Ride →</button>
+        <button class="btn-main" id="btn-post-ride" onclick="doPostRide()" style="flex:1;"><span id="t-btn-post">Post Ride →</span></button>
         <!-- FEATURE 4: Preview map -->
         <button class="btn-outline" onclick="previewRouteMap()" id="btn-preview-map" style="display:none;">🗺️ Preview Route</button>
       </div>
@@ -731,16 +784,52 @@ nav{
 <!-- CHAT -->
 <div class="screen" id="screen-chat">
   <div class="chat-layout">
-    <div class="chat-list">
-      <div class="chat-list-header"><h3>Messages 💬</h3></div>
-      <div id="conversations-list"><div style="padding:16px;color:var(--text2);font-size:.84rem;">Loading...</div></div>
+    <!-- LEFT: Conversations list -->
+    <div class="chat-list" id="chat-list-panel">
+      <div class="chat-list-header">
+        <h3 id="t-chat-title">Messages 💬</h3>
+        <div style="font-size:.72rem;color:var(--text3);" id="chat-online-count"></div>
+      </div>
+      <div class="chat-search">
+        <input type="text" placeholder="Search conversations..." oninput="filterChats(this.value)" style="width:100%;padding:8px 12px;background:var(--card2);border:1px solid var(--border);border-radius:20px;color:var(--text);font-size:.82rem;outline:none;">
+      </div>
+      <div id="conversations-list" style="flex:1;overflow-y:auto;">
+        <div style="padding:20px;text-align:center;">
+          <div style="font-size:2rem;margin-bottom:8px;">💬</div>
+          <div style="color:var(--text2);font-size:.84rem;">No conversations yet</div>
+          <div style="color:var(--text3);font-size:.76rem;margin-top:4px;">Book a ride to start chatting</div>
+        </div>
+      </div>
     </div>
-    <div class="chat-main">
-      <div class="chat-header" id="chat-header"><div style="color:var(--text2);font-size:.88rem;">Select a conversation</div></div>
-      <div class="chat-messages" id="chat-messages"><div class="empty-state"><div class="empty-icon">💬</div><div>Select a conversation</div></div></div>
+    <!-- RIGHT: Chat window -->
+    <div class="chat-main" id="chat-main-panel">
+      <div class="chat-header" id="chat-header">
+        <div class="chat-back-btn" onclick="showChatList()">←</div>
+        <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0;">?</div>
+        <div class="chat-header-info">
+          <div class="chat-header-name">Select a conversation</div>
+          <div class="chat-header-status"><div class="status-dot"></div>Active now</div>
+        </div>
+        <div class="chat-header-actions">
+          <div class="chat-action-btn" title="View on map" onclick="goto('search')">🗺️</div>
+          <div class="chat-action-btn" title="Ride info">ℹ️</div>
+        </div>
+      </div>
+      <div class="chat-messages" id="chat-messages">
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:var(--text3);">
+          <div style="font-size:3rem;opacity:.3;">💬</div>
+          <div style="font-size:.9rem;">Select a conversation to start chatting</div>
+        </div>
+      </div>
       <div class="typing-indicator" id="typing-indicator"></div>
       <div class="chat-input-bar">
-        <input class="chat-input" type="text" id="chat-input" placeholder="Type a message..." onkeydown="handleChatKey(event)" disabled>
+        <div class="chat-input-wrap">
+          <button class="chat-emoji-btn">😊</button>
+          <textarea class="chat-input" id="chat-input" placeholder="Type a message..." rows="1"
+            onkeydown="handleChatKey(event)"
+            oninput="autoResizeInput(this)"
+            disabled></textarea>
+        </div>
         <button class="btn-send" onclick="doSendMessage()" id="btn-send-msg" disabled>➤</button>
       </div>
     </div>
@@ -749,7 +838,7 @@ nav{
 
 <!-- WALLET -->
 <div class="screen" id="screen-payments">
-  <div class="section-title">Wallet 💰</div>
+  <div class="section-title" id="t-wallet-title">Wallet 💰</div>
   <div class="section-sub">Your BuddyRide balance — live from the database</div>
   <div id="payments-alert" class="alert"></div>
   <div class="wallet-card">
@@ -1379,11 +1468,26 @@ async function openConversation(partnerId,partnerName){
   document.querySelectorAll('.chat-item').forEach(el=>el.classList.remove('active'));
   event?.target?.closest('.chat-item')?.classList.add('active');
   const initials=partnerName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-  document.getElementById('chat-header').innerHTML=`
-    <div class="chat-av" style="background:linear-gradient(135deg,var(--accent),var(--accent2));width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;">${initials}</div>
-    <div><div style="font-weight:600;">${partnerName}</div><div style="display:flex;align-items:center;gap:5px;font-size:.76rem;color:var(--text2);"><div class="status-dot"></div>Active</div></div>`;
+  // Update premium chat header
+  const header=document.getElementById('chat-header');
+  header.innerHTML=`
+    <div class="chat-back-btn" onclick="showChatList()" style="display:none;">←</div>
+    <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0;">${initials}</div>
+    <div class="chat-header-info">
+      <div class="chat-header-name">${partnerName}</div>
+      <div class="chat-header-status"><div class="status-dot"></div>Active now</div>
+    </div>
+    <div class="chat-header-actions">
+      <div class="chat-action-btn" onclick="goto('search')" title="Find rides">🗺️</div>
+    </div>`;
+  // Show back button on mobile
+  if(window.innerWidth<=768){
+    header.querySelector('.chat-back-btn').style.display='flex';
+    showChatMain();
+  }
   document.getElementById('chat-input').disabled=false;
   document.getElementById('btn-send-msg').disabled=false;
+  document.getElementById('chat-messages').innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:.82rem;">Loading messages...</div>';
   const{messages}=await getMessages(partnerId);
   renderMessages(messages);
   Socket.markRead(partnerId);
@@ -1768,30 +1872,44 @@ const translations={
     'post-ride':'Post a Ride 🚀','post-ride-sub':'Offer a seat — saved to the live database',
     'mybook':'My Bookings 🎫','mybook-sub':'Rides you have booked',
     'history':'Ride History 📋','history-sub':'All your past rides as driver and rider',
-    'savings':'Your Impact 📊','savings-sub':'See how much you have saved',
+    'savings':'Your Impact 📊','savings-sub':'See how much you have saved and contributed',
     'chat-title':'Messages 💬','wallet-title':'Wallet 💰',
     'rate-title':'Rate your ride ⭐','review-label':'Write a review (optional)',
     'submit-rating':'Submit Rating →',
+    'auth-hero':'Travel together, spend less.','auth-welcome':'Welcome to BuddyRide',
+    'btn-signin':'Sign In','btn-register':'Register','btn-search':'Search',
+    'btn-post':'Post Ride →','from-city':'From City','to-city':'To City',
+    'seats':'Available Seats','price':'Price per Seat (₹)',
   },
   te:{
     'find-ride':'రైడ్ వెతకండి 🗺️','find-ride-sub':'డేటాబేస్ నుండి లైవ్ రైడ్‌లు',
-    'post-ride':'రైడ్ పోస్ట్ చేయండి 🚀','post-ride-sub':'సీటు ఆఫర్ చేయండి',
+    'post-ride':'రైడ్ పోస్ట్ చేయండి 🚀','post-ride-sub':'సీటు ఆఫర్ చేయండి — డేటాబేస్‌కు సేవ్ అవుతుంది',
     'mybook':'నా బుకింగ్‌లు 🎫','mybook-sub':'మీరు బుక్ చేసిన రైడ్‌లు',
-    'history':'రైడ్ చరిత్ర 📋','history-sub':'మీ అన్ని గత రైడ్‌లు',
+    'history':'రైడ్ చరిత్ర 📋','history-sub':'డ్రైవర్ మరియు రైడర్‌గా మీ అన్ని గత రైడ్‌లు',
     'savings':'మీ ప్రభావం 📊','savings-sub':'మీరు ఎంత ఆదా చేశారో చూడండి',
     'chat-title':'సందేశాలు 💬','wallet-title':'వాలెట్ 💰',
     'rate-title':'మీ రైడ్‌ను రేట్ చేయండి ⭐','review-label':'సమీక్ష రాయండి (ఐచ్ఛికం)',
     'submit-rating':'రేటింగ్ సమర్పించండి →',
+    'auth-hero':'కలిసి ప్రయాణించండి, తక్కువ ఖర్చు చేయండి.',
+    'auth-welcome':'BuddyRide కి స్వాగతం',
+    'btn-signin':'సైన్ ఇన్','btn-register':'నమోదు చేయండి','btn-search':'వెతకండి',
+    'btn-post':'రైడ్ పోస్ట్ చేయండి →','from-city':'నుండి నగరం','to-city':'గమ్యం నగరం',
+    'seats':'అందుబాటులో ఉన్న సీట్లు','price':'సీటుకు ధర (₹)',
   },
   hi:{
     'find-ride':'राइड खोजें 🗺️','find-ride-sub':'डेटाबेस से लाइव राइड',
-    'post-ride':'राइड पोस्ट करें 🚀','post-ride-sub':'सीट ऑफर करें',
+    'post-ride':'राइड पोस्ट करें 🚀','post-ride-sub':'सीट ऑफर करें — डेटाबेस में सेव होगा',
     'mybook':'मेरी बुकिंग 🎫','mybook-sub':'आपकी बुक की गई राइड',
-    'history':'राइड इतिहास 📋','history-sub':'आपकी सभी पिछली राइड',
-    'savings':'आपका प्रभाव 📊','savings-sub':'देखें आपने कितना बचाया',
+    'history':'राइड इतिहास 📋','history-sub':'ड्राइवर और राइडर दोनों की सभी राइड',
+    'savings':'आपका प्रभाव 📊','savings-sub':'देखें आपने कितना बचाया और योगदान दिया',
     'chat-title':'संदेश 💬','wallet-title':'वॉलेट 💰',
     'rate-title':'अपनी राइड रेट करें ⭐','review-label':'समीक्षा लिखें (वैकल्पिक)',
     'submit-rating':'रेटिंग सबमिट करें →',
+    'auth-hero':'साथ यात्रा करें, कम खर्च करें.',
+    'auth-welcome':'BuddyRide में आपका स्वागत है',
+    'btn-signin':'साइन इन','btn-register':'रजिस्टर करें','btn-search':'खोजें',
+    'btn-post':'राइड पोस्ट करें →','from-city':'शहर से','to-city':'शहर तक',
+    'seats':'उपलब्ध सीटें','price':'प्रति सीट कीमत (₹)',
   }
 };
 let currentLang='en';
@@ -1799,17 +1917,36 @@ function setLang(lang){
   currentLang=lang;
   ['en','te','hi'].forEach(l=>{
     const btn=document.getElementById('lang-'+l);
-    if(btn){btn.style.background=l===lang?'var(--accent)':'transparent';btn.style.color=l===lang?'#000':'var(--muted)';}
+    if(btn){
+      btn.style.background=l===lang?'var(--accent)':'transparent';
+      btn.style.color=l===lang?'#000':'var(--text2)';
+      btn.style.fontWeight=l===lang?'700':'400';
+    }
   });
   const t=translations[lang]||translations.en;
   const setT=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
-  setT('t-find-ride',t['find-ride']);setT('t-find-ride-sub',t['find-ride-sub']);
-  setT('t-post-ride',t['post-ride']);setT('t-post-ride-sub',t['post-ride-sub']);
-  setT('t-mybook',t['mybook']);setT('t-mybook-sub',t['mybook-sub']);
-  setT('t-history',t['history']);setT('t-history-sub',t['history-sub']);
-  setT('t-savings',t['savings']);setT('t-savings-sub',t['savings-sub']);
-  setT('t-rate-title',t['rate-title']);setT('t-review-label',t['review-label']);
+  // Section titles
+  setT('t-find-ride',t['find-ride']);      setT('t-find-ride-sub',t['find-ride-sub']);
+  setT('t-post-ride',t['post-ride']);      setT('t-post-ride-sub',t['post-ride-sub']);
+  setT('t-mybook',t['mybook']);            setT('t-mybook-sub',t['mybook-sub']);
+  setT('t-history',t['history']);          setT('t-history-sub',t['history-sub']);
+  setT('t-savings',t['savings']);          setT('t-savings-sub',t['savings-sub']);
+  setT('t-wallet-title',t['wallet-title']);setT('t-chat-title',t['chat-title']);
+  setT('t-rate-title',t['rate-title']);    setT('t-review-label',t['review-label']);
   setT('t-submit-rating',t['submit-rating']);
+  // Auth elements
+  setT('t-auth-welcome',t['auth-welcome']);
+  setT('t-btn-signin',t['btn-signin']);    setT('t-btn-register',t['btn-register']);
+  setT('t-btn-search',t['btn-search']);    setT('t-btn-post',t['btn-post']);
+  // Form labels
+  setT('t-from-city',t['from-city']);      setT('t-to-city',t['to-city']);
+  setT('t-seats',t['seats']);              setT('t-price',t['price']);
+  // Nav tab labels (bottom nav)
+  const navLabels=document.querySelectorAll('.bnav-label');
+  const navKeys=lang==='te'?['హోమ్','వెతకండి','పోస్ట్','బుకింగ్','చాట్','వాలెట్']
+               :lang==='hi'?['होम','खोजें','पोस्ट','बुकिंग','चैट','वॉलेट']
+               :['Home','Find','Post','Bookings','Chat','Wallet'];
+  navLabels.forEach((el,i)=>{if(navKeys[i])el.textContent=navKeys[i];});
 }
 
 // ══════════════════════════════════════════════════════
@@ -1864,6 +2001,46 @@ setTimeout(()=>{
   const pr=document.querySelector('#screen-post .section-title');
   if(pr&&!pr.id)pr.id='t-post-ride';
 },100);
+
+
+
+// Mobile: show chat list
+function showChatList(){
+  document.getElementById('chat-list-panel').classList.remove('hidden');
+  document.getElementById('chat-main-panel').classList.remove('active');
+}
+window.showChatList=showChatList;
+
+// Mobile: show chat window
+function showChatMain(){
+  if(window.innerWidth<=768){
+    document.getElementById('chat-list-panel').classList.add('hidden');
+    document.getElementById('chat-main-panel').classList.add('active');
+  }
+}
+
+// Auto-resize textarea
+function autoResizeInput(el){
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,100)+'px';
+}
+window.autoResizeInput=autoResizeInput;
+
+// Filter chat conversations
+function filterChats(query){
+  document.querySelectorAll('.chat-item').forEach(item=>{
+    const name=item.querySelector('.chat-name')?.textContent||'';
+    item.style.display=name.toLowerCase().includes(query.toLowerCase())?'flex':'none';
+  });
+}
+window.filterChats=filterChats;
+
+// Scroll to top on screen change
+const _origGoto=window.goto;
+window.goto=function(id){
+  _origGoto(id);
+  window.scrollTo({top:0,behavior:'smooth'});
+};
 
 
 function showAlert(id,msg,type){
